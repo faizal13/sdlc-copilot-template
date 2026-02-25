@@ -119,7 +119,7 @@ jobs:
           ADO_ID: ${{ steps.meta.outputs.ado_id }}
           RELEASE_BRANCH: ${{ steps.meta.outputs.release_branch }}
         run: |
-          PROMPT=$(cat prompts/instinct-extractor.md)
+          PROMPT=$(cat .github/copilot/agents/instinct-extractor.md)
           DIFF=$(head -600 /tmp/pr_diff.txt)
           EXISTING=$(cat /tmp/existing_instincts.json)
 

@@ -102,7 +102,7 @@ jobs:
             --issue $ISSUE_NUMBER \
             --branch $BRANCH \
             --repo ${{ github.repository }} \
-            --instructions "$(cat prompts/coding-agent-bootstrap.md)"
+            --instructions "$(cat .github/copilot/agents/coding-agent.md)"
 
       - name: Raise Draft PR targeting release branch
         id: raise_pr
