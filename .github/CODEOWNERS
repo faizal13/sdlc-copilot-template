@@ -1,2 +1,6 @@
-* @rakbank-internal/devops-engineers
+# Code Owners
+* @rakbank-internal/backend-leads
+# DevOps team has exclusive access to .github folder
 /.github/ @rakbank-internal/devops-engineers
+
+

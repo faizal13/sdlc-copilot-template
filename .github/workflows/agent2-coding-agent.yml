@@ -1,0 +1,164 @@
+name: "Agent 2 — Coding Agent (Copilot Workspace)"
+
+# Triggers when Agent 1 labels a GitHub Issue with 'ai-generated'
+# Reads the active release branch from issue labels (release/feat-xyz)
+# Creates a feature branch FROM that release branch
+# Raises Draft PR targeting that same release branch
+#
+# Your devops flow:
+#   feature/ADO-123  →  release/feat-xyz  →  SIT → UAT → Pre-Prod → Prod → main
+#
+# The release branch is cut manually via "01 - Create Release Branch" workflow.
+# Whoever creates the GitHub issue must add the release branch label e.g. release/feat-profile
+
+on:
+  issues:
+    types: [labeled]
+
+jobs:
+  coding-agent:
+    if: github.event.label.name == 'ai-generated'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+
+    steps:
+      - name: Extract issue metadata
+        id: issue_meta
+        env:
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ISSUE_LABELS: ${{ join(github.event.issue.labels.*.name, ',') }}
+        run: |
+          echo "issue_number=${ISSUE_NUMBER}" >> $GITHUB_OUTPUT
+          echo "issue_title=${ISSUE_TITLE}" >> $GITHUB_OUTPUT
+
+          # Extract ADO story ID from issue title: [ADO-123] title — service
+          ADO_ID=$(echo "$ISSUE_TITLE" | grep -oP 'ADO-\d+' | head -1)
+          echo "ado_id=${ADO_ID}" >> $GITHUB_OUTPUT
+
+          # Extract target service from labels (e.g. application-service, workflow-service)
+          SERVICE=$(echo "$ISSUE_LABELS" | tr ',' '\n' | grep -E '\-service$|api-gateway' | head -1)
+          echo "service=${SERVICE}" >> $GITHUB_OUTPUT
+
+          # Extract active release branch from issue labels (e.g. release/feat-profile)
+          # Whoever creates the issue MUST add this label
+          RELEASE_BRANCH=$(echo "$ISSUE_LABELS" | tr ',' '\n' | grep -E '^release/' | head -1)
+          if [ -z "$RELEASE_BRANCH" ]; then
+            echo "❌ ERROR: No release/* label found on issue #${ISSUE_NUMBER}"
+            echo "Please add the active release branch as a label (e.g. release/feat-profile)"
+            echo "release_branch_missing=true" >> $GITHUB_OUTPUT
+          else
+            echo "release_branch=${RELEASE_BRANCH}" >> $GITHUB_OUTPUT
+            echo "release_branch_missing=false" >> $GITHUB_OUTPUT
+            echo "✅ Release branch: ${RELEASE_BRANCH}"
+          fi
+
+          # Generate feature branch name — branched FROM release branch
+          BRANCH="feat/${ADO_ID}-${SERVICE}"
+          echo "branch=${BRANCH}" >> $GITHUB_OUTPUT
+
+          echo "Issue: #${ISSUE_NUMBER} | ADO: ${ADO_ID} | Service: ${SERVICE} | Release: ${RELEASE_BRANCH}"
+
+      - name: Fail if release branch label missing
+        if: steps.issue_meta.outputs.release_branch_missing == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: ${{ steps.issue_meta.outputs.issue_number }}
+        run: |
+          gh issue comment $ISSUE_NUMBER --body "❌ **Coding Agent blocked.**
+
+          No \`release/*\` label found on this issue.
+
+          Please add the active release branch as a label before the coding agent can run.
+          Example: add label \`release/feat-profile\` to this issue.
+
+          The release branch is created via **'01 - Create Release Branch'** workflow."
+          exit 1
+
+      - name: Checkout release branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.issue_meta.outputs.release_branch }}
+          fetch-depth: 0
+
+      - name: Create feature branch from release branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -b ${{ steps.issue_meta.outputs.branch }}
+          git push origin ${{ steps.issue_meta.outputs.branch }}
+          echo "✅ Feature branch created from ${{ steps.issue_meta.outputs.release_branch }}"
+
+      - name: Invoke Copilot Workspace coding agent
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: ${{ steps.issue_meta.outputs.issue_number }}
+          BRANCH: ${{ steps.issue_meta.outputs.branch }}
+        run: |
+          gh copilot workspace \
+            --issue $ISSUE_NUMBER \
+            --branch $BRANCH \
+            --repo ${{ github.repository }} \
+            --instructions "$(cat prompts/coding-agent-bootstrap.md)"
+
+      - name: Raise Draft PR targeting release branch
+        id: raise_pr
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BRANCH: ${{ steps.issue_meta.outputs.branch }}
+          RELEASE_BRANCH: ${{ steps.issue_meta.outputs.release_branch }}
+          ADO_ID: ${{ steps.issue_meta.outputs.ado_id }}
+          ISSUE_NUMBER: ${{ steps.issue_meta.outputs.issue_number }}
+          SERVICE: ${{ steps.issue_meta.outputs.service }}
+          ISSUE_TITLE: ${{ steps.issue_meta.outputs.issue_title }}
+        run: |
+          PR_URL=$(gh pr create \
+            --draft \
+            --base "$RELEASE_BRANCH" \
+            --head "$BRANCH" \
+            --title "feat($SERVICE): $ISSUE_TITLE" \
+            --body "## AI-Generated Pull Request
+
+          **ADO Story:** $ADO_ID
+          **GitHub Issue:** #$ISSUE_NUMBER
+          **Target Branch:** \`$RELEASE_BRANCH\`
+          **Generated by:** Agent 2 — Copilot Workspace Coding Agent
+          **Model:** Claude Opus 4.6 via GitHub Copilot Enterprise
+
+          ## Devops Flow
+          \`$BRANCH\` → \`$RELEASE_BRANCH\` → SIT → UAT → Pre-Prod → Prod → \`main\`
+
+          ## Before approving — Human Gate checklist
+          - [ ] Business logic matches ADO story acceptance criteria
+          - [ ] Persona data isolation rules are correctly enforced
+          - [ ] All monetary fields use BigDecimal (never double/float)
+          - [ ] State machine transitions are valid per architecture-overview.md
+          - [ ] No integration code for TBD systems — stubs only
+          - [ ] AI review comments addressed
+          - [ ] PR title follows RAKBank convention (validated by pr-title.yml)
+
+          ## AI Usage Record
+          Update \`docs/ai-usage/sprint-N/$ADO_ID.md\` before merging.
+
+          Closes #$ISSUE_NUMBER")
+
+          echo "pr_url=${PR_URL}" >> $GITHUB_OUTPUT
+          echo "✅ Draft PR raised: ${PR_URL}"
+
+      - name: Comment on issue with PR link
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: ${{ steps.issue_meta.outputs.issue_number }}
+          RELEASE_BRANCH: ${{ steps.issue_meta.outputs.release_branch }}
+        run: |
+          PR_URL=$(gh pr list --head ${{ steps.issue_meta.outputs.branch }} --json url --jq '.[0].url')
+          gh issue comment $ISSUE_NUMBER --body "🤖 **Coding Agent running.**
+
+          **Feature branch:** \`${{ steps.issue_meta.outputs.branch }}\` (from \`$RELEASE_BRANCH\`)
+          **Draft PR:** $PR_URL
+
+          Next: AI review agent will run automatically on the PR.
+          Then: Human gate — developer reviews before approving."

@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "azure-devops": {
+      "command": "npx",
+      "args": ["-y", "@microsoft/azure-devops-mcp"],
+      "env": {
+        "ADO_ORGANIZATION_URL": "${ADO_ORGANIZATION_URL}",
+        "ADO_PERSONAL_ACCESS_TOKEN": "${ADO_PERSONAL_ACCESS_TOKEN}",
+        "ADO_PROJECT": "${ADO_PROJECT}"
+      }
+    }
+  }
+}

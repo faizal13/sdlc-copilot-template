@@ -1,0 +1,22 @@
+name: AI Code Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, ready_for_review]
+
+jobs:
+  ai-review:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Copilot Code Review
+        uses: github/copilot-code-review@v1
+        with:
+          instructions-file: .copilot/review-instructions.md

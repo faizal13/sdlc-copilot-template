@@ -1,0 +1,280 @@
+name: "Agent 5 — Learning Agent (Instinct Extraction)"
+
+# Triggers when a feature branch PR is merged into any release/* branch
+# This is the right moment — team has agreed the code is release-quality
+# Patterns extracted here are reviewed, approved code — high signal
+#
+# LOOP GUARD 1: trigger is pull_request closed — NOT push
+#   Learning agent commits directly to release branch (no PR)
+#   Direct commits do not fire pull_request closed events
+#   Therefore no loop
+#
+# LOOP GUARD 2: paths-ignore on .copilot/**
+#   Even if somehow triggered, changes only to .copilot/ are ignored
+#
+# LOOP GUARD 3: commit message contains [skip-learning]
+#   Belt-and-suspenders final guard
+#
+# Uses GitHub Models API — included in Copilot Enterprise license
+# Authorization: Bearer $GITHUB_TOKEN — no separate API key needed
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - 'release/**'   # fires when any feature PR merges into release/*
+
+jobs:
+  learning-agent:
+    if: |
+      github.event.pull_request.merged == true &&
+      !contains(github.event.pull_request.title, '[skip-learning]') &&
+      !contains(github.event.pull_request.head.ref, 'skip-learning')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Extract PR and release branch metadata
+        id: meta
+        run: |
+          PR_NUMBER="${{ github.event.pull_request.number }}"
+          PR_TITLE="${{ github.event.pull_request.title }}"
+          RELEASE_BRANCH="${{ github.event.pull_request.base.ref }}"
+          FEATURE_BRANCH="${{ github.event.pull_request.head.ref }}"
+
+          echo "pr_number=${PR_NUMBER}" >> $GITHUB_OUTPUT
+          echo "pr_title=${PR_TITLE}" >> $GITHUB_OUTPUT
+          echo "release_branch=${RELEASE_BRANCH}" >> $GITHUB_OUTPUT
+
+          # Extract ADO ID from PR title e.g. feat(application-service): ... [ADO-123]
+          ADO_ID=$(echo "$PR_TITLE" | grep -oP 'ADO-\d+' | head -1)
+          echo "ado_id=${ADO_ID:-unknown}" >> $GITHUB_OUTPUT
+
+          echo "PR #${PR_NUMBER} | ADO: ${ADO_ID} | ${FEATURE_BRANCH} → ${RELEASE_BRANCH}"
+
+      - name: Checkout release branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.meta.outputs.release_branch }}
+          fetch-depth: 0
+          # PAT needed to push directly to release branch
+          token: ${{ secrets.GITHUB_PERSONAL_ACCESS_TOKEN }}
+
+      - name: Configure git identity
+        run: |
+          git config user.name "mortgage-ipa-learning-agent[bot]"
+          git config user.email "learning-agent@mortgage-ipa.noreply"
+
+      - name: Get merged PR diff
+        id: diff
+        run: |
+          # Diff between the merge commit and the commit before it
+          # This captures exactly what the feature branch contributed
+          git diff HEAD~1 HEAD \
+            -- '*.java' '*.yml' '*.yaml' '*.xml' '*.sql' \
+            ':!.copilot/**' \
+            ':!.github/**' \
+            > /tmp/pr_diff.txt
+
+          DIFF_LINES=$(wc -l < /tmp/pr_diff.txt)
+          echo "diff_lines=${DIFF_LINES}" >> $GITHUB_OUTPUT
+          echo "Diff: ${DIFF_LINES} lines"
+
+          if [ "$DIFF_LINES" -eq 0 ]; then
+            echo "skip=true" >> $GITHUB_OUTPUT
+          else
+            echo "skip=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Skip if no source code in diff
+        if: steps.diff.outputs.skip == 'true'
+        run: |
+          echo "No source code changes — skipping learning agent."
+          exit 0
+
+      - name: Read existing instincts
+        run: |
+          mkdir -p .copilot/instincts
+          python3 -c "
+          import json, glob, os
+          instincts = []
+          for f in sorted(glob.glob('.copilot/instincts/*.json')):
+              try:
+                  with open(f) as fp:
+                      instincts.append(json.load(fp))
+              except:
+                  pass
+          with open('/tmp/existing_instincts.json', 'w') as fp:
+              json.dump(instincts, fp, indent=2)
+          print(f'Loaded {len(instincts)} existing instincts')
+          "
+
+      - name: Extract instincts via GitHub Models API
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ steps.meta.outputs.pr_number }}
+          PR_TITLE: ${{ steps.meta.outputs.pr_title }}
+          ADO_ID: ${{ steps.meta.outputs.ado_id }}
+          RELEASE_BRANCH: ${{ steps.meta.outputs.release_branch }}
+        run: |
+          PROMPT=$(cat prompts/instinct-extractor.md)
+          DIFF=$(head -600 /tmp/pr_diff.txt)
+          EXISTING=$(cat /tmp/existing_instincts.json)
+
+          # GitHub Models API — Claude Opus 4.6
+          # Included in your Copilot Enterprise license
+          # No ANTHROPIC_API_KEY needed — uses GITHUB_TOKEN
+          RESPONSE=$(curl -s \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Content-Type: application/json" \
+            https://models.inference.ai.azure.com/chat/completions \
+            -d "$(jq -n \
+              --arg system "$PROMPT" \
+              --arg diff "$DIFF" \
+              --arg existing "$EXISTING" \
+              --arg pr_num "$PR_NUMBER" \
+              --arg pr_title "$PR_TITLE" \
+              --arg ado_id "$ADO_ID" \
+              --arg release "$RELEASE_BRANCH" \
+              '{
+                model: "claude-opus-4-6",
+                max_tokens: 4096,
+                messages: [
+                  { role: "system", content: $system },
+                  {
+                    role: "user",
+                    content: (
+                      "PR #" + $pr_num + " merged into " + $release + "\n" +
+                      "Title: " + $pr_title + "\n" +
+                      "ADO Story: " + $ado_id + "\n\n" +
+                      "## Merged Diff (reviewed and approved code)\n" + $diff + "\n\n" +
+                      "## Existing Instincts\n" + $existing + "\n\n" +
+                      "Extract instincts. Output ONLY valid JSON:\n" +
+                      "{\n  \"instincts\": [...],\n  \"skill_promotions\": [...],\n  \"summary\": \"one line\"\n}"
+                    )
+                  }
+                ]
+              }')"
+          )
+
+          echo "$RESPONSE" | jq -r '.choices[0].message.content' > /tmp/extraction_result.json
+          echo "Extraction complete"
+
+      - name: Write instinct and skill files
+        run: |
+          python3 << 'EOF'
+          import json, os, sys, glob
+          from datetime import datetime
+
+          try:
+              with open('/tmp/extraction_result.json') as f:
+                  raw = f.read()
+              start = raw.find('{')
+              end = raw.rfind('}') + 1
+              if start == -1:
+                  print("No JSON in response — skipping")
+                  sys.exit(0)
+              data = json.loads(raw[start:end])
+          except Exception as e:
+              print(f"Parse error: {e} — skipping")
+              sys.exit(0)
+
+          os.makedirs('.copilot/instincts', exist_ok=True)
+          instincts = data.get('instincts', [])
+          written = 0
+
+          for instinct in instincts:
+              name = instinct.get('name', '').replace(' ', '-').lower()
+              category = instinct.get('category', 'coding')
+              filename = f".copilot/instincts/{category}-{name}.json"
+
+              if os.path.exists(filename):
+                  with open(filename) as f:
+                      existing = json.load(f)
+                  existing['times_seen'] = existing.get('times_seen', 1) + 1
+                  existing['confidence'] = min(
+                      instinct.get('confidence', existing['confidence']), 0.95)
+                  existing['last_seen'] = datetime.utcnow().isoformat()
+                  prs = existing.get('source_prs', [])
+                  new_pr = str(instinct.get('source_prs', [''])[0])
+                  if new_pr and new_pr not in prs:
+                      prs.append(new_pr)
+                  existing['source_prs'] = prs
+                  with open(filename, 'w') as f:
+                      json.dump(existing, f, indent=2)
+                  print(f"Updated: {filename} (confidence: {existing['confidence']}, seen: {existing['times_seen']}x)")
+              else:
+                  instinct['first_seen'] = datetime.utcnow().isoformat()
+                  instinct['last_seen'] = datetime.utcnow().isoformat()
+                  with open(filename, 'w') as f:
+                      json.dump(instinct, f, indent=2)
+                  print(f"Created: {filename}")
+              written += 1
+
+          # Apply skill promotions
+          for promotion in data.get('skill_promotions', []):
+              skill_file = promotion.get('skill_file')
+              content = promotion.get('content')
+              if not skill_file or not content:
+                  continue
+              full_path = f".copilot/skills/{skill_file}"
+              os.makedirs(os.path.dirname(full_path), exist_ok=True)
+              with open(full_path, 'a') as f:
+                  f.write(f"\n\n---\n\n{content}")
+              print(f"Promoted to skill: {full_path}")
+
+          with open('/tmp/learning_summary.txt', 'w') as f:
+              f.write(data.get('summary', f'Extracted {written} instincts'))
+          EOF
+
+      - name: Check if anything changed
+        id: diff_check
+        run: |
+          git add .copilot/instincts/ .copilot/skills/
+          if git diff --staged --quiet; then
+            echo "changed=false" >> $GITHUB_OUTPUT
+            echo "Nothing new to commit"
+          else
+            echo "changed=true" >> $GITHUB_OUTPUT
+            echo "New instincts/skills to commit"
+          fi
+
+      - name: Commit directly to release branch
+        if: steps.diff_check.outputs.changed == 'true'
+        env:
+          ADO_ID: ${{ steps.meta.outputs.ado_id }}
+          PR_NUMBER: ${{ steps.meta.outputs.pr_number }}
+          RELEASE_BRANCH: ${{ steps.meta.outputs.release_branch }}
+        run: |
+          SUMMARY=$(cat /tmp/learning_summary.txt)
+          # [skip-learning] in commit message = loop guard 3
+          # Direct push (no PR) = loop guard 1 — pull_request closed won't fire
+          git commit -m "chore(learning): ${SUMMARY} [ADO: ${ADO_ID}] [skip-learning]"
+          git push origin "$RELEASE_BRANCH"
+          echo "✅ Committed to ${RELEASE_BRANCH}"
+
+      - name: Post summary on merged PR
+        if: steps.diff_check.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ steps.meta.outputs.pr_number }}
+          RELEASE_BRANCH: ${{ steps.meta.outputs.release_branch }}
+        run: |
+          SUMMARY=$(cat /tmp/learning_summary.txt)
+          gh pr comment $PR_NUMBER --body "🧠 **Learning Agent**
+
+          ${SUMMARY}
+
+          Instincts and skills updated in \`${RELEASE_BRANCH}\`.
+          These patterns will be available to the coding agent for the next story on this release branch."
+
+      - name: Post no-change comment
+        if: steps.diff_check.outputs.changed == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ steps.meta.outputs.pr_number }}
+        run: |
+          gh pr comment $PR_NUMBER \
+            --body "🧠 **Learning Agent** — No new patterns extracted from this PR."
