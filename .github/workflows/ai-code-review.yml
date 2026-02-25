@@ -19,4 +19,4 @@ jobs:
       - name: Run Copilot Code Review
         uses: github/copilot-code-review@v1
         with:
-          instructions-file: .copilot/review-instructions.md
+          instructions-file: .github/instructions/review.instructions.md
