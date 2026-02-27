@@ -14,7 +14,7 @@ Copy and adapt them for your project's domain.
 |---|---|
 | `application-service.md` | Prompt for generating a Spring Boot service layer |
 | `story-analyzer.md` | Original story analyzer (now an agent in `.github/copilot/agents/`) |
-| `coding-agent-bootstrap.md` | Original coding agent (now an agent in `.github/copilot/agents/`) |
+| `coding-agent-bootstrap.md` | Original rakbank backend dev agent (now an agent in `.github/copilot/agents/`) |
 | `instinct-extractor.md` | Original instinct extractor (now an agent in `.github/copilot/agents/`) |
 
 ## Adding Your Own Prompts

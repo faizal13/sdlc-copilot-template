@@ -1,0 +1,294 @@
+#!/bin/bash
+# ═══════════════════════════════════════════════════════════════════════════════
+#  post-commit — AI Usage Auto-Logger
+#  Fires automatically after every git commit.
+#  Extracts session metrics and writes to docs/ai-usage/{release-branch}/{TICKET-ID}.md
+#
+#  Setup (one-time per repo clone):
+#    git config core.hooksPath .github/hooks/git
+#
+#  Requires: bash, git (git bash on Windows is fine — no Python/PowerShell needed)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+set -euo pipefail
+
+# ── Escape hatch ──────────────────────────────────────────────────────────────
+if [ "${SKIP_AI_USAGE:-}" = "true" ]; then
+  exit 0
+fi
+
+# ── Paths ─────────────────────────────────────────────────────────────────────
+LOGS_DIR="logs/copilot"
+TASK_PLAN_DIR="taskPlan"
+AI_USAGE_DIR="docs/ai-usage"
+
+# ── Git Metadata ──────────────────────────────────────────────────────────────
+COMMIT_MSG=$(git log -1 --pretty=%B 2>/dev/null || echo "")
+COMMIT_MSG_FIRST_LINE=$(git log -1 --pretty=%s 2>/dev/null || echo "")
+BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "unknown")
+COMMIT_SHA=$(git rev-parse --short HEAD 2>/dev/null || echo "unknown")
+DEVELOPER=$(git config user.name 2>/dev/null || echo "unknown")
+TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ" 2>/dev/null || echo "unknown")
+DATE=$(date +"%Y-%m-%d" 2>/dev/null || echo "unknown")
+TIME=$(date +"%H:%M" 2>/dev/null || echo "unknown")
+
+# ── Extract Ticket ID ─────────────────────────────────────────────────────────
+# Try commit message first, then branch name
+TICKET_ID=$(echo "$COMMIT_MSG" | grep -oE 'ADO-[0-9]+' | head -1 || true)
+if [ -z "$TICKET_ID" ]; then
+  TICKET_ID=$(echo "$BRANCH" | grep -oE 'ADO-[0-9]+' | head -1 || true)
+fi
+
+# Skip if no ticket ID — not an ADO-tracked commit
+if [ -z "$TICKET_ID" ]; then
+  exit 0
+fi
+
+echo "-- AI usage hook: detected $TICKET_ID on $BRANCH"
+
+# ── Session Metrics from Copilot Logs (pure bash — no Python) ─────────────────
+PROMPT_COUNT=0
+SESSION_DURATION="not tracked"
+
+if [ -f "$LOGS_DIR/prompts.log" ]; then
+  PROMPT_COUNT=$(wc -l < "$LOGS_DIR/prompts.log" 2>/dev/null | tr -d ' ' || echo "0")
+fi
+
+if [ -f "$LOGS_DIR/session.log" ]; then
+  # Extract last sessionStart timestamp using grep + sed
+  LAST_START=$(grep '"sessionStart"' "$LOGS_DIR/session.log" 2>/dev/null | tail -1 | sed 's/.*"timestamp":"\([^"]*\)".*/\1/' || true)
+
+  if [ -n "$LAST_START" ]; then
+    # Try date -d (GNU date in git bash) to convert to epoch seconds
+    START_EPOCH=$(date -d "$LAST_START" +%s 2>/dev/null || echo "")
+    NOW_EPOCH=$(date +%s 2>/dev/null || echo "")
+
+    if [ -n "$START_EPOCH" ] && [ -n "$NOW_EPOCH" ]; then
+      DIFF_SECS=$((NOW_EPOCH - START_EPOCH))
+      DIFF_MINS=$((DIFF_SECS / 60))
+      if [ "$DIFF_MINS" -gt 0 ] 2>/dev/null; then
+        SESSION_DURATION="${DIFF_MINS} min"
+      fi
+    fi
+  fi
+fi
+
+# ── Git Change Stats ──────────────────────────────────────────────────────────
+FILES_CHANGED="0"
+LINES_ADDED="0"
+LINES_REMOVED="0"
+DIFF_STAT=""
+
+# Check if there is a previous commit to diff against
+if git rev-parse HEAD~1 >/dev/null 2>&1; then
+  DIFF_STAT=$(git diff --stat HEAD~1 HEAD 2>/dev/null | head -30 || echo "")
+  SUMMARY_LINE=$(git diff --stat HEAD~1 HEAD 2>/dev/null | tail -1 || echo "")
+
+  FILES_CHANGED=$(echo "$SUMMARY_LINE" | grep -oE '[0-9]+ file' | grep -oE '[0-9]+' || echo "0")
+  LINES_ADDED=$(echo "$SUMMARY_LINE" | grep -oE '[0-9]+ insertion' | grep -oE '[0-9]+' || echo "0")
+  LINES_REMOVED=$(echo "$SUMMARY_LINE" | grep -oE '[0-9]+ deletion' | grep -oE '[0-9]+' || echo "0")
+fi
+
+# ── Detect Release Branch (for folder organisation) ──────────────────────────
+# Priority: current branch if release/* → tracking branch → fallback to current branch
+RELEASE_FOLDER=""
+
+# 1. If we ARE on a release branch
+case "$BRANCH" in
+  release/*)
+    RELEASE_FOLDER=$(echo "$BRANCH" | sed 's|/|-|g')
+    ;;
+esac
+
+# 2. If on a feature branch, try to find the upstream release branch
+if [ -z "$RELEASE_FOLDER" ]; then
+  TRACKING=$(git config "branch.${BRANCH}.merge" 2>/dev/null | sed 's|refs/heads/||' || true)
+  case "$TRACKING" in
+    release/*)
+      RELEASE_FOLDER=$(echo "$TRACKING" | sed 's|/|-|g')
+      ;;
+  esac
+fi
+
+# 3. Try extracting from recent merge bases with release branches
+if [ -z "$RELEASE_FOLDER" ]; then
+  # List local release branches and find the closest ancestor
+  CLOSEST_RELEASE=$(git branch --list 'release/*' 2>/dev/null | sed 's/^[* ]*//' | while read -r rb; do
+    MERGE_BASE=$(git merge-base HEAD "$rb" 2>/dev/null || echo "")
+    if [ -n "$MERGE_BASE" ]; then
+      DIST=$(git rev-list --count "$MERGE_BASE..HEAD" 2>/dev/null || echo "9999")
+      echo "$DIST $rb"
+    fi
+  done | sort -n | head -1 | awk '{print $2}' || true)
+
+  if [ -n "$CLOSEST_RELEASE" ]; then
+    RELEASE_FOLDER=$(echo "$CLOSEST_RELEASE" | sed 's|/|-|g')
+  fi
+fi
+
+# 4. Final fallback: sanitize current branch name
+if [ -z "$RELEASE_FOLDER" ]; then
+  RELEASE_FOLDER=$(echo "$BRANCH" | sed 's|/|-|g')
+fi
+
+# ── Detect Workflow Type ──────────────────────────────────────────────────────
+WORKFLOW="remote"
+WORKFLOW_LABEL="Remote (GitHub Actions)"
+TASK_PLAN_FILE=""
+STORY_TITLE=""
+
+# Check if a local task plan exists for this ticket
+MATCHES=$(ls "$TASK_PLAN_DIR/${TICKET_ID}"*.md 2>/dev/null || true)
+if [ -n "$MATCHES" ]; then
+  TASK_PLAN_FILE=$(echo "$MATCHES" | head -1)
+  WORKFLOW="local"
+  WORKFLOW_LABEL="Local (VS Code)"
+fi
+
+# Extract story title from task plan if available
+if [ -n "$TASK_PLAN_FILE" ] && [ -f "$TASK_PLAN_FILE" ]; then
+  STORY_TITLE=$(grep -m1 "^# Task Plan:" "$TASK_PLAN_FILE" 2>/dev/null | sed 's/^# Task Plan: //' || true)
+fi
+if [ -z "$STORY_TITLE" ]; then
+  STORY_TITLE="$COMMIT_MSG_FIRST_LINE"
+fi
+
+# ── Write AI Usage File ──────────────────────────────────────────────────────
+mkdir -p "$AI_USAGE_DIR/$RELEASE_FOLDER"
+OUTPUT_FILE="$AI_USAGE_DIR/$RELEASE_FOLDER/${TICKET_ID}.md"
+
+if [ -f "$OUTPUT_FILE" ]; then
+  # ── Append commit update to existing file ──────────────────────────────────
+  {
+    echo ""
+    echo "---"
+    echo ""
+    echo "### Commit: ${DATE} ${TIME} - \`${COMMIT_SHA}\`"
+    echo ""
+    echo "| Metric | Value |"
+    echo "|--------|-------|"
+    echo "| **Commit** | \`${COMMIT_SHA}\` |"
+    echo "| **Message** | ${COMMIT_MSG_FIRST_LINE} |"
+    echo "| **Prompts (cumulative)** | ${PROMPT_COUNT} |"
+    echo "| **Files Changed** | ${FILES_CHANGED} |"
+    echo "| **Lines Added** | +${LINES_ADDED} |"
+    echo "| **Lines Removed** | -${LINES_REMOVED} |"
+    echo ""
+    echo "*Auto-updated at ${TIMESTAMP}*"
+  } >> "$OUTPUT_FILE"
+
+  echo "-- AI usage updated: $OUTPUT_FILE"
+
+else
+  # ── Create new AI usage file for this ticket ───────────────────────────────
+  {
+    echo "# ${TICKET_ID} — ${STORY_TITLE}"
+    echo ""
+    echo "> Auto-generated by post-commit hook on ${DATE}"
+    echo ""
+    echo "---"
+    echo ""
+    echo "## Summary"
+    echo ""
+    echo "| Field | Value |"
+    echo "|-------|-------|"
+    echo "| **Ticket** | ${TICKET_ID} |"
+    echo "| **Developer** | ${DEVELOPER} |"
+    echo "| **Date** | ${DATE} |"
+    echo "| **Release** | \`${RELEASE_FOLDER}\` |"
+    echo "| **Workflow** | ${WORKFLOW_LABEL} |"
+    echo "| **Branch** | \`${BRANCH}\` |"
+    echo "| **First Commit** | \`${COMMIT_SHA}\` |"
+    echo ""
+    echo "---"
+    echo ""
+    echo "## Workflow Used"
+    echo ""
+
+    if [ "$WORKFLOW" = "local" ]; then
+      echo "**Local VS Code Workflow**"
+      echo ""
+      echo "| Step | Agent | Output |"
+      echo "|------|-------|--------|"
+      echo "| 1. Planning | \`@task-planner\` | Task plan file in \`taskPlan/\` |"
+      echo "| 2. Coding | \`@local-rakbank-dev-agent\` | Scaffolded implementation in VS Code |"
+      echo "| 3. Review | \`@local-reviewer\` | Structured review with pitfalls flagged |"
+      echo "| 4. Learning | \`@local-instinct-learner\` | Patterns captured to \`.copilot/instincts/\` |"
+      echo "| 5. Commit | git commit | This file auto-generated |"
+    else
+      echo "**Remote GitHub Actions Workflow**"
+      echo ""
+      echo "| Step | Agent | Output |"
+      echo "|------|-------|--------|"
+      echo "| 1. Analysis | \`@story-analyzer\` | GitHub Issue with full spec |"
+      echo "| 2. Coding | Agent 2 (GitHub Actions) | Draft PR via Copilot Workspace |"
+      echo "| 3. Review | Agent 3 (GitHub Actions) | Inline PR comments |"
+      echo "| 4. Human Gate | Developer | PR approved and merged |"
+      echo "| 5. Learning | Agent 5 (GitHub Actions) | Instincts extracted on merge |"
+    fi
+
+    echo ""
+    echo "---"
+    echo ""
+    echo "## AI Usage Metrics"
+    echo ""
+    echo "| Metric | Value |"
+    echo "|--------|-------|"
+    echo "| **Session Duration** | ${SESSION_DURATION} |"
+    echo "| **Prompts Submitted** | ${PROMPT_COUNT} |"
+    echo "| **Files Changed** | ${FILES_CHANGED} |"
+    echo "| **Lines Added** | +${LINES_ADDED} |"
+    echo "| **Lines Removed** | -${LINES_REMOVED} |"
+    echo ""
+    echo "---"
+    echo ""
+    echo "## SDLC Phase Coverage"
+    echo ""
+    echo "- [ ] Story Analysis / Planning"
+    echo "- [ ] Architecture / Design"
+    echo "- [x] Coding (AI-assisted)"
+    echo "- [ ] Unit Testing"
+    echo "- [ ] Code Review"
+    echo "- [ ] Documentation"
+    echo ""
+    echo "---"
+    echo ""
+    echo "## Files Changed"
+    echo ""
+    echo "\`\`\`"
+    if [ -n "$DIFF_STAT" ]; then
+      echo "$DIFF_STAT"
+    else
+      echo "diff not available"
+    fi
+    echo "\`\`\`"
+    echo ""
+    echo "---"
+    echo ""
+    echo "## AI Acceptance Rate"
+    echo ""
+    echo "- [ ] Accepted as-is"
+    echo "- [ ] Accepted with minor modifications"
+    echo "- [ ] Accepted with significant modifications"
+    echo "- [ ] Mostly rewritten"
+    echo ""
+    echo "---"
+    echo ""
+    echo "## Instincts Captured"
+    echo ""
+    echo "*(auto-populated if \`@local-instinct-learner\` was used)*"
+    echo ""
+    echo "---"
+    echo ""
+    echo "*Auto-generated at ${TIMESTAMP}*"
+    echo "*Subsequent commits to this ticket will append update sections below.*"
+  } > "$OUTPUT_FILE"
+
+  echo "-- AI usage created: $OUTPUT_FILE"
+fi
+
+# ── Auto-stage the ai-usage file for the developer's next commit ─────────────
+git add "$OUTPUT_FILE" 2>/dev/null || true
+
+echo "-- AI usage file staged: $OUTPUT_FILE"
+exit 0
