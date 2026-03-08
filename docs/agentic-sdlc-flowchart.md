@@ -165,7 +165,7 @@ flowchart TD
 
     subgraph AGENT_AC ["⚙️ ADDRESS COMMENTS — Claude 4 Sonnet"]
         AC1[Reads all unresolved comments]
-        AC1 --> AC2[Categorizes: code fix |\nquestion | style | architecture]
+        AC1 --> AC2[Categorizes: code fix ·\nquestion · style · architecture]
         AC2 --> AC3[Makes targeted fixes\none comment at a time]
         AC3 --> AC4[mvn compile → test → verify]
         AC4 --> AC5[Pushes fixes to feature branch]
