@@ -1,5 +1,6 @@
 ---
 description: 'Analyzes merged PR diffs to extract reusable development patterns, builds institutional memory that makes future agents smarter'
+model: 'claude-4-haiku'
 tools: ['codebase', 'github']
 name: 'Instinct Extractor'
 ---
@@ -107,6 +108,22 @@ Skipped (no general pattern): {count}
 ```
 
 If nothing worth capturing: `"PR #{pr_number} did not produce instinct-worthy patterns."`
+
+### Step 3.5 — Update Project Changelog
+
+If this PR introduced ANY of the following, append to `docs/project-changelog.md`:
+- New entity or modified entity fields
+- New or modified API endpoints
+- State machine changes (new statuses, new transitions)
+- New integrations or changed integration contracts
+- Changed business rules
+
+Format:
+```markdown
+## {Service Name} — {Change Category}
+- **Sprint {N} ({ticket-id}):** {what changed}
+- **Current state:** {summary of current state after this change}
+```
 
 ---
 
