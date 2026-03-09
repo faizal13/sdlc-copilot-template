@@ -9,6 +9,7 @@ Feed this to GitHub Copilot agent at the start of any session to make it aware o
 
 | Agent | Model | Role | Trigger |
 |-------|-------|------|---------|
+| @story-refiner | Claude 4 Opus | Reads entire epic → dependency graph → execution plan | Manual: once per epic |
 | @story-analyzer | Claude 4 Opus | Reads ADO story → creates GitHub Issue | Manual: developer invokes |
 | @task-planner | Claude 4 Opus | Reads ADO/task → creates local task plan | Manual: developer invokes |
 | @rakbank-backend-dev-agent | Claude 4 Sonnet | Implements GitHub Issue spec → raises PR | Automatic: `ai-generated` label |
@@ -28,30 +29,107 @@ Feed this to GitHub Copilot agent at the start of any session to make it aware o
 
 ```mermaid
 flowchart TD
-    A([PO: Story in ADO]) --> B([DevOps: Release branch cut])
-    B --> C([YOU: Choose workflow])
-    C -->|Hands-on, VS Code| D([LOCAL WORKFLOW])
-    C -->|Automated, GitHub Actions| E([REMOTE WORKFLOW])
-    D --> F([Human Gate: Review + Approve PR])
-    E --> F
-    F --> G([Merge → Release Pipeline])
-    G --> H([SIT → UAT → Prod])
-    H --> I([ADO Story closed automatically])
+    A([PO + BA: Epic with Features and Stories in ADO]) --> B
+
+    B([YOU: @story-refiner EPIC-100<br/>once per epic during refinement])
+
+    B --> B1([Execution plan created<br/>Dependencies + Phases + Gaps])
+    B1 --> B2([YOU + BA: Review gaps and resolve])
+
+    B2 --> C([DevOps: Release branch cut])
+    C --> D([YOU: Pick story from Phase 1<br/>Choose workflow])
+
+    D -->|Hands-on, VS Code| E([LOCAL WORKFLOW])
+    D -->|Automated, GitHub Actions| F([REMOTE WORKFLOW])
+    E --> G([Human Gate: Review + Approve PR])
+    F --> G
+    G --> H([Merge → Release Pipeline])
+    H --> I([SIT → UAT → Prod])
+    I --> J([ADO Story closed automatically])
+    J --> K{More stories<br/>in this phase?}
+    K -->|Yes| D
+    K -->|No, next phase| D
 
     style A fill:#4A90D9,color:#fff
-    style B fill:#4A90D9,color:#fff
-    style C fill:#E8A838,color:#fff
-    style D fill:#27AE60,color:#fff
-    style E fill:#2E86C1,color:#fff
-    style F fill:#E8A838,color:#fff
-    style G fill:#888,color:#fff
+    style B fill:#8E44AD,color:#fff
+    style B1 fill:#8E44AD,color:#fff
+    style B2 fill:#E8A838,color:#fff
+    style C fill:#4A90D9,color:#fff
+    style D fill:#E8A838,color:#fff
+    style E fill:#27AE60,color:#fff
+    style F fill:#2E86C1,color:#fff
+    style G fill:#E8A838,color:#fff
     style H fill:#888,color:#fff
-    style I fill:#27AE60,color:#fff
+    style I fill:#888,color:#fff
+    style J fill:#27AE60,color:#fff
+    style K fill:#FFF9E6,stroke:#F39C12
 ```
 
 ---
 
-## Diagram 2 — Local Workflow (VS Code)
+## Diagram 2 — Story Refiner (Run Once Per Epic)
+
+Run this BEFORE any sprint starts. It reads everything the BA wrote and translates it into an actionable technical plan.
+
+```mermaid
+flowchart TD
+    A([YOU: @story-refiner EPIC-100]) --> B
+
+    B["STORY REFINER - Claude 4 Opus
+    1. Read Epic + all Features + all Stories from ADO
+    2. Read solution design docs + codebase state
+    3. Map each story to a microservice"]
+
+    B --> C["TECHNICAL ANALYSIS per story
+    - Data model impact
+    - API impact
+    - State machine impact
+    - Integration impact
+    - Cross-service dependencies"]
+
+    C --> D["BUILD DEPENDENCY GRAPH
+    Entity deps: Story B needs entity from A
+    API deps: Story B calls API from A
+    State deps: Story B extends state from A
+    Event deps: Story B listens to event from A"]
+
+    D --> E["GENERATE EXECUTION PHASES
+    Phase 1: Foundation stories (zero deps)
+    Phase 2: Depends only on Phase 1
+    Phase 3: Depends on Phase 1+2
+    Within each phase: mark parallel tracks"]
+
+    E --> F["DETECT GAPS
+    Missing stories, ambiguous scope,
+    contradictions, missing personas,
+    circular dependencies"]
+
+    F --> G["OUTPUTS
+    1. docs/epic-plans/EPIC-100-execution-plan.md
+    2. Technical child stories in ADO
+    3. Updated solution design docs
+    4. Gap report for BA review"]
+
+    G --> H{Gaps found?}
+    H -->|Yes| I([YOU + BA: Resolve gaps<br/>Re-run if needed])
+    I --> A
+    H -->|No| J([Ready for sprint<br/>Pick stories by phase order])
+
+    style A fill:#E8A838,color:#fff
+    style B fill:#EBF5FB,stroke:#2E86C1,stroke-width:2px
+    style C fill:#EBF5FB,stroke:#2E86C1,stroke-width:2px
+    style D fill:#EBF5FB,stroke:#2E86C1,stroke-width:2px
+    style E fill:#EBF5FB,stroke:#2E86C1,stroke-width:2px
+    style F fill:#EBF5FB,stroke:#2E86C1,stroke-width:2px
+    style G fill:#EBF5FB,stroke:#2E86C1,stroke-width:2px
+    style H fill:#FFF9E6,stroke:#F39C12,stroke-width:2px
+    style I fill:#E8A838,color:#fff
+    style J fill:#27AE60,color:#fff
+```
+
+---
+
+## Diagram 3 — Local Workflow (VS Code)
 
 Use this when you are at your desk and want full control over every step.
 
@@ -119,7 +197,7 @@ flowchart TD
 
 ---
 
-## Diagram 3 — Remote Workflow (GitHub Actions)
+## Diagram 4 — Remote Workflow (GitHub Actions)
 
 Use this for batch processing or when you want automation to handle the full implementation.
 
@@ -209,7 +287,7 @@ flowchart TD
 
 ---
 
-## Diagram 4 — How the Agent Gets Smarter
+## Diagram 5 — How the Agent Gets Smarter
 
 Every merged PR feeds the learning system. Confidence builds across stories.
 
@@ -337,6 +415,7 @@ Three guards prevent any infinite loop:
 ```
 .github/
 ├── copilot/agents/
+│   ├── story-refiner.md            Epic → dependency graph → execution plan
 │   ├── story-analyzer.md           ADO story → GitHub Issue (remote)
 │   ├── task-planner.md             ADO/task → local task plan
 │   ├── rakbank-backend-dev-agent.md  Implements GitHub Issue (remote)
@@ -371,6 +450,7 @@ contexts/banking.md                  Domain context
 
 docs/
 ├── solution-design/                 Architecture, personas, business rules
+├── epic-plans/                      Execution plans from @story-refiner
 ├── project-changelog.md             Requirement drift tracker
 └── agent-feedback/TEMPLATE.md       Post-story feedback form
 

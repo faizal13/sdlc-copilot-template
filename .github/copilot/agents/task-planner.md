@@ -59,6 +59,7 @@ docs/solution-design/user-personas.md
 docs/solution-design/business-rules.md
 docs/solution-design/integration-map.md
 docs/solution-design/data-model.md          (if exists)
+docs/epic-plans/                            (all execution plans — if any exist)
 contexts/banking.md
 .copilot/instincts/*.json                   (all — apply existing patterns)
 .github/skills/                             (all SKILL.md files)
@@ -66,6 +67,23 @@ contexts/banking.md
 
 Cross-reference the task against these documents.
 Flag any conflict between what the task asks and what the design defines.
+
+### Step 2.1 — Check Execution Plan (If Exists)
+
+Search `docs/epic-plans/` for an execution plan that contains this story's ADO ID.
+
+If found:
+1. **Verify phase readiness:** Are all stories this one depends on already completed (merged to release branch)?
+   - Check the dependency graph — list each predecessor story
+   - For each predecessor, verify: is there a merged PR or committed code for it?
+   - If ANY predecessor is NOT done: WARN "Story {id} depends on {predecessor-id} which is not yet complete. Proceeding may produce incomplete code."
+2. **Load contract handoffs:** If this story consumes a contract from a previous phase, read the contract definition and include it in the task plan
+3. **Note parallel stories:** If other stories are in the same phase, note them — the dev agent should not modify files those stories are also changing
+4. **Service confirmation:** Verify the service mapping from the execution plan matches your analysis
+
+If NO execution plan exists:
+- WARN: "No execution plan found for this epic. Run @story-refiner first for dependency-aware planning."
+- Proceed without execution context — but note it as a gap.
 
 ### Step 2.5 — Read Project Changelog
 
@@ -200,6 +218,19 @@ If none: "No state machine changes."
 - If TBD: stub only — DO NOT generate integration code
 
 If none: "No external integrations required."
+
+## Execution Context
+<!-- From docs/epic-plans/ — populated by @story-refiner -->
+| Field | Value |
+|-------|-------|
+| **Execution Plan** | docs/epic-plans/EPIC-{id}-execution-plan.md |
+| **Phase** | {N} of {total} |
+| **Dependencies** | {list of story IDs that must be done first — or "None"} |
+| **Dependencies Status** | {DONE / NOT DONE for each — verified against codebase} |
+| **Parallel With** | {list of story IDs in same phase — or "None"} |
+| **Contract Handoffs** | {contracts needed from previous phase — or "None"} |
+
+If no execution plan exists: "No execution plan available. Run @story-refiner on the parent epic first."
 
 ## Cross-Service Impact
 <!-- If this story touches multiple microservices -->

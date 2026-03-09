@@ -17,6 +17,7 @@ A vague issue produces vague code. A precise issue produces production-ready cod
 Load these folders from the repository and keep them in context:
 - `contexts/` — all domain context files
 - `docs/solution-design/` — all solution design files (architecture, personas, business rules, integrations)
+- `docs/epic-plans/` — execution plans from @story-refiner (if any exist)
 
 If any of these files are empty skeletons, warn the user before proceeding.
 
@@ -44,6 +45,23 @@ When given a story/ticket ID, read it via MCP. Extract:
 - Priority
 
 If any field is empty or unclear, note it under "Clarifications Needed" — do not guess.
+
+### Step 1.5 — Check Execution Plan (If Exists)
+
+Search `docs/epic-plans/` for an execution plan that contains this story ID.
+
+If found, extract:
+- **Phase:** Which execution phase is this story in?
+- **Dependencies:** Which stories must be completed BEFORE this one?
+- **Parallel:** Can this story run in parallel with others?
+- **Contract handoffs:** Does this story depend on a contract from a previous phase?
+- **Service mapping:** Which microservice was this story assigned to?
+
+Add this information to the GitHub Issue under a **"Execution Context"** section.
+
+If NO execution plan exists for this story's epic:
+- WARN: "No execution plan found. Run @story-refiner on the parent epic first for dependency-aware planning."
+- Proceed without execution context — but note it as a gap.
 
 ### Step 2 — Cross-Reference Against Solution Design
 - Identify which service(s) this story touches
@@ -88,6 +106,16 @@ Labels: ai-generated, {service-name}
 ## Integration Touchpoints
 {system, call type, trigger, contract status — or "None"}
 {If TBD: "DO NOT generate code — stub only"}
+
+## Execution Context
+<!-- From docs/epic-plans/ — if available -->
+- **Phase:** {N} of {total}
+- **Dependencies:** {list of story IDs that must be done first — or "None (foundation story)"}
+- **Parallel with:** {list of story IDs that can run at the same time — or "None"}
+- **Contract handoffs needed before starting:** {API/event contracts from previous phase — or "None"}
+- **Execution plan:** docs/epic-plans/EPIC-{id}-execution-plan.md
+
+If no execution plan exists: "No execution plan available. Run @story-refiner first."
 
 ## Acceptance Criteria → Test Cases
 | # | Given | When | Then | Test Type |
