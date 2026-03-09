@@ -44,6 +44,13 @@ Read ADO story `{ADO_STORY_ID}` via MCP and extract:
 
 If any fields are empty or unclear, note them in the plan under **"Gaps / Clarifications Needed"** — do not guess.
 
+**Incomplete story gating:** If the story has NO acceptance criteria — **STOP immediately.**
+Do not generate a task plan for a story with no ACs. Output:
+```
+⛔ STOPPED: ADO-{id} has no acceptance criteria.
+Action: Add ACs to the ADO story and re-run @task-planner.
+```
+
 **If plain description:**
 Use the description as-is. Infer the likely target service and scope from the solution design.
 
@@ -124,7 +131,7 @@ List each one so `@local-rakbank-dev-agent` knows to apply them during scaffoldi
 
 ---
 
-### Step 3.5 — Grounded Plan Verification (MANDATORY)
+### Step 3.5 — Grounded Plan Verification + Codebase Scan (MANDATORY)
 
 Before writing the task plan, verify every reference against the ACTUAL codebase:
 
@@ -134,6 +141,13 @@ Before writing the task plan, verify every reference against the ACTUAL codebase
 4. **Check existing Liquibase changelog numbering** — read `db.changelog-master.yaml`
 5. **Search for existing utility classes** that the dev agent should reuse (not recreate)
 6. **List what EXISTS vs what needs to be CREATED** — every action item must specify `create | modify | extend`
+
+**Codebase Inventory (feed into the task plan):**
+- **Entities:** Does the entity this task needs already exist? Note existing fields vs new fields needed.
+- **Repository methods:** Do queries matching this task already exist? (`findBy*`, `existsBy*`)
+- **Service methods:** Does a method with the same semantic purpose exist? Reuse or extend — don't duplicate.
+- **Utility/helper classes:** Note class name and package — dev agent must reuse.
+- **Latest Liquibase changelog:** Record `LATEST_CHANGELOG = {filename}` and last NNN sequence. New files must not collide.
 
 If the codebase is empty (new project), note this — the dev agent will run bootstrap.
 
@@ -244,6 +258,19 @@ Contract this service must expose for consumers:
 
 If single-service only: "No cross-service impact."
 
+## Codebase — Reuse Instructions
+<!-- From Step 3.5 codebase scan — dev agent must follow these exactly -->
+**Reuse these existing classes (do NOT recreate):**
+- `{ClassName}` — at `{package}` — used for: {purpose}
+
+**Reuse these existing methods (do NOT duplicate):**
+- `{ClassName}.{methodName}()` — already handles: {what it does}
+
+**New classes this story owns:**
+- `{ClassName}` — this task creates it
+
+If no reuse inventory: "No existing classes to reuse — greenfield implementation."
+
 ## Applicable Instincts
 {List instincts from .copilot/instincts/ that apply to this task}
 - `{category}-{name}.json` — {why it applies, what pattern to follow}
@@ -272,17 +299,19 @@ The dev agent should NOT load these (saves context budget):
 - Source files in other microservices
 
 ## Acceptance Criteria → Test Cases
-| # | Given | When | Then | Test Type |
-|---|-------|------|------|-----------|
-| AC1 | {precondition} | {action} | {expected result} | Unit / Integration |
+| # | Given | When | Then | Test Method Name | Type |
+|---|-------|------|------|-----------------|------|
+| AC1 | {precondition} | {action} | {expected result} | `should{Expected}When{Condition}` | Unit / Integration |
 
 ## Definition of Done
 - [ ] `mvn clean verify` passes with zero failures
-- [ ] All AC test cases have corresponding test methods
+- [ ] Every AC row has a corresponding `@Test` method with the exact name above
 - [ ] No `double` or `float` for monetary fields — only `BigDecimal`
 - [ ] No hardcoded values — all config in `application.yml`
 - [ ] All public methods have Javadoc
 - [ ] OpenAPI annotations on all new controller methods
+- [ ] No class recreated that exists in "Reuse Instructions" above
+- [ ] Liquibase changeSet id is unique — no collision with other open PRs
 - [ ] Persona data isolation rules enforced at service layer
 
 ## Gaps / Clarifications Needed
