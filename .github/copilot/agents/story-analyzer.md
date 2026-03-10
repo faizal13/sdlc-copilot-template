@@ -184,6 +184,28 @@ The coding agent that reads this issue has **no other context**.
 **Body:**
 
 ```markdown
+<!-- ISSUE-METADATA-JSON
+{
+  "agent": "story-analyzer",
+  "ado_id": "{ADO_ID}",
+  "service": "{target service}",
+  "release_branch": "{RELEASE_BRANCH}",
+  "sprint": {N},
+  "phase": {N or null},
+  "total_phases": {N or null},
+  "dependencies": ["{story IDs that must merge first}"],
+  "parallel_with": ["{story IDs in same phase}"],
+  "contract_handoffs": ["{contracts from previous phase}"],
+  "personas": ["{persona names}"],
+  "state_transitions": ["{FROM -> TO}"],
+  "has_integrations": true or false,
+  "tbd_integrations": ["{system names marked TBD}"],
+  "cross_service": true or false,
+  "clarifications_count": {N},
+  "execution_plan": "docs/epic-plans/EPIC-{id}-execution-plan.md or null"
+}
+ISSUE-METADATA-JSON -->
+
 ## ADO Story
 - **ID:** ADO-{ADO_ID}
 - **Title:** {story title}
@@ -373,6 +395,24 @@ Sprint: {N}
 
 STOP if any clarifications exist.
 Resolve in ADO before the coding agent runs.
+```
+
+---
+
+## Step 6.5 — Append Telemetry Entry
+
+After the output summary, append an entry to `docs/agent-telemetry/current-sprint.md`:
+
+```markdown
+### story-analyzer — {YYYY-MM-DD HH:MM}
+| Metric | Value |
+|--------|-------|
+| Story/Epic | ADO-{id} |
+| Duration | {estimated minutes} |
+| MCP Calls | {count of ADO + codebase reads} |
+| Outcome | {success / partial / failure} |
+| Error | {description or "none"} |
+| Notes | Service: {name}, Phase: {N or "none"}, Clarifications: {count}, Cross-service: {yes/no} |
 ```
 
 ---

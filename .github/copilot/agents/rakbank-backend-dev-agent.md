@@ -33,6 +33,40 @@ If any of these paths don't exist yet (brand-new repo), note it and proceed — 
 - I re-read all referenced files from disk — I do not rely on cached knowledge.
 - If the issue references solution design docs, I read the SPECIFIC sections mentioned, not all docs.
 
+### Checkpoint Resume Protocol
+
+Before starting implementation, check for a previous checkpoint:
+
+1. Extract the ADO ID from the GitHub Issue title (e.g., `ADO-456` from `[ADO-456] ...`)
+2. Look for `.checkpoints/remote-dev-{ticket-id}.json`
+3. If found:
+   - Read the checkpoint and verify artifacts exist on the release branch
+   - If valid: skip to the `next_phase` — log "Resuming from {last_completed_phase}"
+   - If artifacts missing: discard checkpoint and start fresh
+4. If no checkpoint: proceed normally
+
+### Checkpoint Write Protocol
+
+After completing each major phase (Phase 1 through Phase 5), write:
+
+**File:** `.checkpoints/remote-dev-{ticket-id}.json`
+
+```json
+{
+  "agent": "rakbank-backend-dev-agent",
+  "ticket": "{ticket-id}",
+  "service": "{service-name}",
+  "last_completed_phase": "Phase {N}",
+  "timestamp": "{ISO-8601}",
+  "artifacts_created": ["{cumulative list of all files created/modified}"],
+  "next_phase": "Phase {N+1}",
+  "build_status": "{last mvn result}",
+  "notes": "{summary}"
+}
+```
+
+After ALL phases complete: **DELETE** the checkpoint file.
+
 ---
 
 ## Phase 1 — Project Bootstrap (Auto-Detect)

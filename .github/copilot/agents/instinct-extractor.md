@@ -76,6 +76,31 @@ For each pattern, create or update a file in `.copilot/instincts/`:
 
 **If pattern already exists:** increment `times_seen`, recalculate confidence, append PR to `source_prs`, update `last_seen`. Do NOT create a duplicate.
 
+### Step 2.5 — Update Instinct Index (Progressive Disclosure)
+
+After creating or updating any instinct file, update `.copilot/instincts/INDEX.json`.
+
+This index allows other agents to discover relevant instincts **without loading all files**.
+
+**For each instinct created or updated, ensure INDEX.json contains an entry:**
+```json
+{
+  "name": "{instinct name}",
+  "description": "{one-sentence description}",
+  "category": "{coding|testing|security|integration|domain}",
+  "confidence": {score},
+  "filename": "{category}-{pattern-name}.json",
+  "promoted": false
+}
+```
+
+**Rules:**
+- NEW instinct: append to `instincts` array
+- EXISTING instinct: update `confidence` score
+- PROMOTED instinct: set `promoted: true`
+- Update `_last_updated` to current ISO timestamp
+- Keep array sorted by category, then name
+
 ### Step 3 — Check Promotion Threshold
 
 Promote to a skill when:
@@ -123,6 +148,24 @@ Format:
 ## {Service Name} — {Change Category}
 - **Sprint {N} ({ticket-id}):** {what changed}
 - **Current state:** {summary of current state after this change}
+```
+
+---
+
+## Step 4.5 — Append Telemetry Entry
+
+After the output summary, append an entry to `docs/agent-telemetry/current-sprint.md`:
+
+```markdown
+### instinct-extractor — {YYYY-MM-DD HH:MM}
+| Metric | Value |
+|--------|-------|
+| Story/Epic | PR #{pr_number} |
+| Duration | {estimated minutes} |
+| MCP Calls | {count of GitHub + codebase reads} |
+| Outcome | {success} |
+| Error | {description or "none"} |
+| Notes | Extracted: {count}, Reinforced: {count}, Promoted: {count}, Changelog updated: {yes/no} |
 ```
 
 ---

@@ -28,6 +28,31 @@ Example:
 
 ---
 
+## Phase -1 — Check for Checkpoint (Resume from Failure)
+
+Before loading any context, check if a previous run left a checkpoint:
+
+1. Extract the ticket ID from the task plan filename (e.g., `ADO-456` from `taskPlan/ADO-456-application-service.md`)
+2. Look for `.checkpoints/local-dev-{ticket-id}.json`
+3. If found:
+   - Read the checkpoint file
+   - Verify that each file in `artifacts_created` still exists on disk
+   - If all artifacts exist:
+     ```
+     ♻️ RESUMING from checkpoint
+     Last completed: {last_completed_phase}
+     Artifacts verified: {count} files exist
+     Skipping to: {next_phase}
+     ```
+   - Skip directly to the `next_phase` listed in the checkpoint
+   - If artifacts are MISSING: warn and restart from Phase 0
+     ```
+     ⚠️ Checkpoint found but artifacts missing. Starting fresh.
+     ```
+4. If no checkpoint found: proceed normally from Phase 0
+
+---
+
 ## Phase 0 — Load Context (Before Everything Else)
 
 Read these files and directories from the workspace. They are your guardrails.
@@ -982,6 +1007,36 @@ After all files are generated and the build is green, output:
 
 ---
 
+## Checkpoint Protocol — Write After Each Phase
+
+After completing each major phase (Phase 1 through Phase 5), write or update the checkpoint file:
+
+**File:** `.checkpoints/local-dev-{ticket-id}.json`
+
+```json
+{
+  "agent": "local-rakbank-dev-agent",
+  "ticket": "{ticket-id}",
+  "service": "{service-name}",
+  "last_completed_phase": "Phase {N}",
+  "timestamp": "{ISO-8601}",
+  "artifacts_created": [
+    "{list every file created or modified so far}"
+  ],
+  "next_phase": "Phase {N+1} — {phase name}",
+  "build_status": "{last mvn compile/verify result}",
+  "notes": "{brief summary of what was accomplished}"
+}
+```
+
+**Rules:**
+- Overwrite the checkpoint after EACH phase (not append — replace)
+- List ALL artifacts cumulatively (Phase 3 checkpoint includes Phase 1+2+3 artifacts)
+- After ALL phases complete successfully: **DELETE** the checkpoint file (clean exit)
+- If the agent is interrupted mid-phase, the checkpoint still points to the LAST COMPLETE phase
+
+---
+
 ## Guidelines
 
 - Read the ENTIRE task plan before writing any code — map all entities, relationships, and acceptance criteria first
@@ -989,6 +1044,24 @@ After all files are generated and the build is green, output:
 - If the task plan is ambiguous, ask the developer in the chat — never guess on business logic
 - When in doubt between two approaches, choose the one that's easier to test
 - Every decision should survive the question: "What happens when this runs across 3 replicas at 1000 req/s?"
+
+---
+
+## Phase 6.5 — Append Telemetry Entry
+
+After the output summary, append an entry to `docs/agent-telemetry/current-sprint.md`:
+
+```markdown
+### local-rakbank-dev-agent — {YYYY-MM-DD HH:MM}
+| Metric | Value |
+|--------|-------|
+| Story/Epic | {ticket from task plan} |
+| Duration | {estimated minutes} |
+| MCP Calls | 0 |
+| Outcome | {success / partial / failure} |
+| Error | {description or "none"} |
+| Notes | Service: {name}, mvn verify cycles: {count}, Files created: {count}, Tests: {count}, JaCoCo: {%}, PIT: {%} |
+```
 
 ---
 

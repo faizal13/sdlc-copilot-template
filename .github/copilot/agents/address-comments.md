@@ -112,6 +112,24 @@ If any step fails, identify which fix caused the failure and correct it.
 
 ---
 
+## Step 4.5 — Append Telemetry Entry
+
+After the output summary, append an entry to `docs/agent-telemetry/current-sprint.md`:
+
+```markdown
+### address-comments — {YYYY-MM-DD HH:MM}
+| Metric | Value |
+|--------|-------|
+| Story/Epic | PR #{pr_number} |
+| Duration | {estimated minutes} |
+| MCP Calls | {count of GitHub API reads} |
+| Outcome | {success / partial / failure} |
+| Error | {description or "none"} |
+| Notes | Fixed: {count}, Replied: {count}, Flagged: {count}, Build: {pass/fail} |
+```
+
+---
+
 ## Agent Behavior Rules
 
 ### Iteration Limits

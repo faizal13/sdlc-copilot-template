@@ -222,6 +222,67 @@ Structure your output exactly as follows:
   3. Optional: @local-instinct-learner to capture patterns from this session
 ```
 
+### Machine-Parseable Review Result
+
+After the human-readable report above, append a JSON block that downstream agents can parse:
+
+```markdown
+<!-- REVIEW-RESULT-JSON
+{
+  "agent": "local-reviewer",
+  "timestamp": "{ISO-8601}",
+  "task_plan": "taskPlan/{filename}.md",
+  "branch": "{branch}",
+  "mechanical": {
+    "compile": "pass|fail",
+    "tests": "pass|fail",
+    "test_count": {N},
+    "checkstyle": "pass|fail",
+    "verify": "pass|fail"
+  },
+  "findings": {
+    "critical": [
+      {"file": "{path}", "line": {N}, "issue": "{description}", "fix": "{instruction}", "category": "{bigdecimal|persona|state-machine|sql-injection|transaction|missing-test}"}
+    ],
+    "warnings": [
+      {"file": "{path}", "line": {N}, "issue": "{description}", "fix": "{instruction}"}
+    ],
+    "suggestions": [
+      {"file": "{path}", "issue": "{description}"}
+    ]
+  },
+  "ac_coverage": {
+    "total": {N},
+    "covered": {N},
+    "missing": ["{AC number}"]
+  },
+  "verdict": "READY|BLOCKED",
+  "blocked_reason": "{description or null}"
+}
+REVIEW-RESULT-JSON -->
+```
+
+This block is hidden in rendered Markdown (HTML comment) but parseable by agents.
+The `@local-rakbank-dev-agent` can read this to auto-fix critical issues in a future iteration.
+
+---
+
+## Step 4.5 — Append Telemetry Entry
+
+After the review report, append an entry to `docs/agent-telemetry/current-sprint.md`:
+
+```markdown
+### local-reviewer — {YYYY-MM-DD HH:MM}
+| Metric | Value |
+|--------|-------|
+| Story/Epic | {ticket from task plan or "unknown"} |
+| Duration | {estimated minutes} |
+| MCP Calls | 0 |
+| Outcome | {success} |
+| Error | none |
+| Notes | Verdict: {READY/BLOCKED}, Critical: {count}, Warnings: {count}, AC coverage: {covered}/{total} |
+```
+
 ---
 
 ## How Developers Address Review Findings

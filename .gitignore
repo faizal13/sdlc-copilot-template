@@ -42,3 +42,8 @@ Thumbs.db
 *.key
 *.p12
 *.jks
+
+# ──────────────────────────────────────────────
+# Agent checkpoints (ephemeral — local only)
+# ──────────────────────────────────────────────
+.checkpoints/*.json

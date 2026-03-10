@@ -31,6 +31,41 @@ Or with a specific feature scope:
 
 ---
 
+## Step 0 — Check for Checkpoint (Resume from Failure)
+
+Large epics (10+ features, 30+ stories) may exhaust the context window mid-analysis.
+Check for a previous checkpoint before starting:
+
+1. Look for `.checkpoints/story-refiner-EPIC-{id}.json`
+2. If found:
+   - Read the checkpoint
+   - It contains: `features_read` (list of Feature IDs already analyzed) and `partial_analysis` (file path to partial output)
+   - Resume from the next unread Feature
+   - Log: `♻️ Resuming EPIC-{id} — {count} features already read, continuing from FEATURE-{next}`
+3. If no checkpoint: proceed normally from Step 1
+
+### Checkpoint Write — After Each Feature
+
+After completing the technical analysis (Step 3) for each Feature, write/update:
+
+**File:** `.checkpoints/story-refiner-EPIC-{id}.json`
+```json
+{
+  "agent": "story-refiner",
+  "epic": "EPIC-{id}",
+  "timestamp": "{ISO-8601}",
+  "features_read": ["FEATURE-101", "FEATURE-102"],
+  "stories_read": ["STORY-201", "STORY-202", "STORY-203"],
+  "features_remaining": ["FEATURE-103"],
+  "partial_analysis": "docs/epic-plans/EPIC-{id}-execution-plan.partial.md",
+  "notes": "2 of 3 features analyzed. 6 stories processed."
+}
+```
+
+After ALL features are read and the execution plan is complete: **DELETE** the checkpoint file.
+
+---
+
 ## Step 1 — Read the Entire Epic Tree
 
 Read the ADO Epic and ALL its children via MCP:
@@ -318,6 +353,24 @@ Next steps:
 2. For each story in Phase 1:
    LOCAL:  @task-planner STORY-{id}
    REMOTE: @story-analyzer STORY-{id}
+```
+
+---
+
+## Step 8.5 — Append Telemetry Entry
+
+After the output summary, append an entry to `docs/agent-telemetry/current-sprint.md`:
+
+```markdown
+### story-refiner — {YYYY-MM-DD HH:MM}
+| Metric | Value |
+|--------|-------|
+| Story/Epic | EPIC-{id} |
+| Duration | {estimated minutes} |
+| MCP Calls | {count of ADO reads performed} |
+| Outcome | {success / partial / failure} |
+| Error | {description or "none"} |
+| Notes | {features}, {BA stories}, {technical stories created}, {gaps} gaps, {phases} phases |
 ```
 
 ---

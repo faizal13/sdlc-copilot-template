@@ -68,9 +68,23 @@ docs/solution-design/integration-map.md
 docs/solution-design/data-model.md          (if exists)
 docs/epic-plans/                            (all execution plans — if any exist)
 contexts/banking.md
-.copilot/instincts/*.json                   (all — apply existing patterns)
 .github/skills/                             (all SKILL.md files)
 ```
+
+### Instinct Loading — Progressive Disclosure
+
+Instead of loading ALL instinct files, use the index-first approach:
+
+1. **Read `.copilot/instincts/INDEX.json`** — this is a lightweight summary of all instincts
+2. **Filter by relevance**: select only instincts whose `category` matches this story's domain:
+   - If the story involves external systems → load `integration` category
+   - If the story involves state machine → load `domain` category
+   - If the story involves new tests → load `testing` category
+   - Always load `coding` and `security` categories (they apply universally)
+3. **Load only the selected instinct files** by their `filename` from the index
+4. Skip any instinct marked `"promoted": true` — its pattern is already in `.github/skills/`
+
+This saves context budget as the instinct library grows. If INDEX.json doesn't exist yet, fall back to reading all `.copilot/instincts/*.json` files.
 
 Cross-reference the task against these documents.
 Flag any conflict between what the task asks and what the design defines.
@@ -171,6 +185,30 @@ Examples:
 Write the file using EXACTLY this structure. Do not skip any section.
 
 ```markdown
+<!-- TASK-PLAN-METADATA-JSON
+{
+  "agent": "task-planner",
+  "ticket": "{ADO-STORY-ID or local-task}",
+  "service": "{target service}",
+  "date": "{YYYY-MM-DD}",
+  "status": "ready-for-coding",
+  "workflow": "local",
+  "phase": {N or null},
+  "total_phases": {N or null},
+  "dependencies": ["{story IDs}"],
+  "dependency_status": {"STORY-{id}": "DONE|NOT_DONE"},
+  "parallel_with": ["{story IDs}"],
+  "contract_handoffs": ["{contracts from previous phase}"],
+  "personas": ["{persona names}"],
+  "has_state_transitions": true or false,
+  "has_integrations": true or false,
+  "ac_count": {N},
+  "gaps_count": {N},
+  "cross_service": true or false,
+  "execution_plan": "docs/epic-plans/EPIC-{id}-execution-plan.md or null"
+}
+TASK-PLAN-METADATA-JSON -->
+
 # Task Plan: {Title}
 
 ## Metadata
@@ -365,6 +403,24 @@ Next step:
 
 If there are gaps in the plan, stop here.
 Resolve them (update ADO story / clarify requirements) before running the coding agent.
+
+---
+
+## Step 7.5 — Append Telemetry Entry
+
+After the output summary, append an entry to `docs/agent-telemetry/current-sprint.md`:
+
+```markdown
+### task-planner — {YYYY-MM-DD HH:MM}
+| Metric | Value |
+|--------|-------|
+| Story/Epic | {ADO-ID or "local-task"} |
+| Duration | {estimated minutes} |
+| MCP Calls | {count of ADO + codebase reads} |
+| Outcome | {success / partial / failure} |
+| Error | {description or "none"} |
+| Notes | Service: {name}, Gaps: {count}, Instincts applied: {count}, Phase: {N or "none"} |
+```
 
 ---
 

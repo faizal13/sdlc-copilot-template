@@ -1,0 +1,6 @@
+{
+  "_description": "Auto-maintained index of all instinct files. Agents read this FIRST to discover relevant instincts without loading all files. Updated automatically by @local-instinct-learner and @instinct-extractor after each instinct creation or update.",
+  "_format_version": "1.0",
+  "_last_updated": null,
+  "instincts": []
+}

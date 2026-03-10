@@ -20,8 +20,11 @@ Feed this to GitHub Copilot agent at the start of any session to make it aware o
 | @instinct-extractor | Claude 4 Haiku | Extracts patterns from merged PRs | Automatic: PR merge |
 | @local-instinct-learner | Claude 4 Haiku | Captures local session learnings | Manual: developer invokes |
 | @tech-debt-planner | Claude 4 Opus | Scans codebase for accumulated debt | Manual: every 2 sprints |
+| @sprint-orchestrator | Claude 4 Opus | Reads execution plan → shows phase status → presents parallel commands | Manual: start of sprint |
+| @eval-runner | Claude 4 Opus | Evaluates agent outputs against golden references + scoring rubric | Manual: end of sprint |
+| @telemetry-collector | Claude 4 Haiku | Aggregates per-invocation telemetry into sprint summary | Manual: end of sprint |
 
-**Model rationale:** Opus for decisions that shape all downstream work (planning, review, architecture). Sonnet for code generation (best cost/quality ratio for implementation). Haiku for pattern matching (fast, cheap, pattern extraction doesn't need deep reasoning).
+**Model rationale:** Opus for decisions that shape all downstream work (planning, review, architecture, evaluation). Sonnet for code generation (best cost/quality ratio for implementation). Haiku for pattern matching and data aggregation (fast, cheap, doesn't need deep reasoning).
 
 ---
 
@@ -396,6 +399,12 @@ Both workflows converge at the **Human Gate** — your engineering judgment is a
 | Multi-repo confusion | Cross-service detection + one story per service | @task-planner, @story-analyzer |
 | Liquibase collisions | Timestamp naming: YYYYMMDD-HHMM-ticket-desc.sql | cross-service.instructions.md |
 | Accumulated debt | @tech-debt-planner scan every 2 sprints | @tech-debt-planner |
+| No quality measurement | Evaluation framework with golden refs + scoring rubric | evals/, @eval-runner |
+| No operational visibility | Agent telemetry — per-invocation metrics + sprint summaries | docs/agent-telemetry/, @telemetry-collector |
+| Manual story sequencing | Sprint orchestrator reads execution plan + presents parallel commands | @sprint-orchestrator |
+| Agent output not machine-readable | JSON metadata blocks in issues, task plans, review reports | @story-analyzer, @task-planner, @local-reviewer |
+| Instinct library bloat | INDEX.json for progressive disclosure — load only relevant instincts | .copilot/instincts/INDEX.json |
+| Mid-run failure loses progress | Checkpoint files after each phase — resume from last success | .checkpoints/, all coding agents + @story-refiner |
 
 ---
 
@@ -425,7 +434,10 @@ Three guards prevent any infinite loop:
 │   ├── local-reviewer.md           Pre-commit code review
 │   ├── instinct-extractor.md       Learns from merged PRs (remote)
 │   ├── local-instinct-learner.md   Learns from local sessions
-│   └── tech-debt-planner.md        Periodic codebase health scan
+│   ├── tech-debt-planner.md        Periodic codebase health scan
+│   ├── sprint-orchestrator.md      Phase status + parallel execution commands
+│   ├── eval-runner.md              Evaluates agent output quality
+│   └── telemetry-collector.md      Aggregates sprint telemetry
 ├── instructions/
 │   ├── coding.instructions.md      Java/Spring Boot standards
 │   ├── review.instructions.md      Review checklist
@@ -445,14 +457,33 @@ Three guards prevent any infinite loop:
     └── 05-instinct-extractor.yml
 
 .copilot/instincts/                  Institutional memory (JSON files)
+    └── INDEX.json                   Progressive disclosure index
+
+.checkpoints/                        Agent checkpoint files (git-ignored)
+    └── README.md                    Checkpoint system documentation
 
 contexts/banking.md                  Domain context
 
 docs/
 ├── solution-design/                 Architecture, personas, business rules
 ├── epic-plans/                      Execution plans from @story-refiner
+├── agent-telemetry/                 Per-agent operational metrics
+│   ├── README.md                    Telemetry system documentation
+│   ├── TEMPLATE.md                  Sprint summary template
+│   └── current-sprint.md           Live telemetry entries
+├── ai-usage/                        Story-level audit trail (git hook)
 ├── project-changelog.md             Requirement drift tracker
 └── agent-feedback/TEMPLATE.md       Post-story feedback form
+
+evals/                               Agent evaluation framework
+├── README.md                        How to run evals
+├── scoring-rubric.md                4-dimension scoring criteria
+├── sprint-tracker.md                Sprint-over-sprint comparison
+└── golden-references/               Reference input/output pairs
+    ├── story-analyzer-eval.md
+    ├── task-planner-eval.md
+    ├── local-reviewer-eval.md
+    └── story-refiner-eval.md
 
 taskPlan/                            Generated task plans (local workflow)
 ```
