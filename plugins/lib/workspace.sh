@@ -19,6 +19,7 @@
 #    docs/issues/                           ← @story-analyzer writes GitHub Issues here (local mode)
 #    evals/sprint-tracker.md               ← @eval-runner writes quality scores here
 #    taskPlan/                              ← @task-planner writes task plans here
+#    sprintPlan/                            ← @sprint-orchestrator writes sprint status files here
 #    .github/copilot/.initialized           ← stamp so re-init is skipped
 #
 #  Sourced by install.sh. Never run directly.
@@ -83,6 +84,9 @@ install() {
 
   mkdir -p "$TARGET_DIR/taskPlan"
   echo "  [dir]  taskPlan/"
+
+  mkdir -p "$TARGET_DIR/sprintPlan"
+  echo "  [dir]  sprintPlan/"
 
   echo ""
 
