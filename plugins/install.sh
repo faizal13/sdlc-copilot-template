@@ -50,6 +50,7 @@ CLI_MODE=""
 CLI_TARGET=""
 CLI_SERVICES=""
 CLI_REPOS_SUBDIRS=""
+CLI_NO_SERVICES="false"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -59,6 +60,8 @@ while [[ $# -gt 0 ]]; do
       CLI_TARGET="$2"; shift 2 ;;
     --services)
       CLI_SERVICES="$2"; shift 2 ;;
+    --no-services)
+      CLI_NO_SERVICES="true"; shift ;;
     --subdirs)
       CLI_REPOS_SUBDIRS="true"; shift ;;
     --external)
@@ -152,8 +155,8 @@ SERVICE_REPOS=""
 REPOS_ARE_SUBDIRS="true"
 
 if [ "$TARGET" = "workspace" ]; then
-  if [ -n "$CLI_SERVICES" ]; then
-    SERVICE_REPOS="$CLI_SERVICES"
+  if [ "$CLI_NO_SERVICES" = "true" ] || [ -n "$CLI_SERVICES" ]; then
+    SERVICE_REPOS="${CLI_SERVICES:-}"
     REPOS_ARE_SUBDIRS="${CLI_REPOS_SUBDIRS:-true}"
   else
     echo "┌─ Workspace configuration ─────────────────────────────┐"
