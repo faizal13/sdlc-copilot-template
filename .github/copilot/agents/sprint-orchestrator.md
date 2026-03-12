@@ -39,7 +39,8 @@ Resolve all HIGH gaps in docs/epic-plans/EPIC-{id}-execution-plan.md first.
 ```
 
 Also read:
-- `docs/epics/EPIC-{id}*.md` — for story titles and BA linkage
+- ADO via MCP (primary) — get live story titles, ACs, and status for all stories in this epic
+- `docs/epic-plans/EPIC-{id}*.md` (fallback) — if ADO MCP is unavailable, read story details from execution plan files
 - `.copilot/instincts/INDEX.json` — to list relevant instincts per story
 
 ---
