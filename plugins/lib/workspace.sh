@@ -333,6 +333,7 @@ summary() {
   echo "    docs/epic-plans/            @story-refiner execution plans"
   echo "    docs/issues/                @story-analyzer GitHub Issue drafts (local mode)"
   echo "    taskPlan/                   @task-planner task plans"
+  echo "    sprintPlan/                 @sprint-orchestrator sprint reference files"
   echo "    evals/                      @eval-runner quality scores + golden references"
   echo ""
   echo "  Next steps:"

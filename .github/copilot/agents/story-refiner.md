@@ -324,6 +324,33 @@ Create a child work item in ADO with:
 
 ---
 
+### 7.4 — Post Clarification Comments on ADO Stories
+
+For every BA story that has at least one gap requiring BA clarification (severity HIGH or MEDIUM), post a comment on that ADO story via MCP.
+
+**Comment format:**
+```
+[Story Refiner — Clarification Needed]
+
+The following questions need to be answered before development can begin:
+
+{For each gap on this story:}
+Q{N}: {specific question — written in plain business language, no technical jargon}
+  Context: {why this matters — what will be blocked or ambiguous without the answer}
+
+Please reply to this comment or update the story ACs with the answers.
+Tagged: @BA-owner  sprint-refinement-block
+```
+
+**Rules:**
+- Post ONCE per story — combine all questions for that story into a single comment
+- Only post for HIGH and MEDIUM gaps — skip LOW severity gaps
+- If a gap is about a missing story (not an ambiguity in an existing story), post the comment on the FEATURE parent, not a story
+- If MCP comment posting fails: retry ONCE. If it fails again, note in the execution plan gap row: "ADO comment failed — post manually"
+- Do NOT modify story fields — comments only
+
+---
+
 ## Step 8 — Output Summary
 
 ```
