@@ -182,7 +182,7 @@ Examples:
 ## Step 5 — Write the Task Plan File
 
 > **Prerequisite:** The directory `taskPlan/` must exist (created by `workspace-init.sh`).
-> Write the file directly using the codebase tool — GitHub Copilot Agent Mode supports file creation.
+> Write the file directly using the codebase tool — This is the correct tool for file creation in GitHub Copilot Agent Mode.
 > If a write fails, run `workspace-init.sh` first to create the required directories.
 
 Write to `taskPlan/{filename}.md` using this exact structure:

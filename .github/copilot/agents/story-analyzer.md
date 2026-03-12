@@ -378,7 +378,7 @@ Fix any issues in the issue content before creating.
 - If GitHub MCP is unavailable → write the issue as a local file
 
 > **Prerequisite (local mode):** The directory `docs/issues/` must exist (created by `workspace-init.sh`).
-> Write files directly using the codebase tool — GitHub Copilot Agent Mode supports file creation.
+> Use the editFiles tool to create this file — This is the correct tool for file creation in GitHub Copilot Agent Mode.
 > If a write fails, ask the developer to run `workspace-init.sh` first.
 
 **Local mode — write to `docs/issues/{ADO_ID}-{service-name}-issue.md`** with the full GitHub Issue markdown content (same structure as if creating a real issue). After writing, note: "When GitHub MCP is available: create an issue from this file and add label `ai-generated`."

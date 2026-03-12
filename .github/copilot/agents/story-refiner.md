@@ -219,7 +219,7 @@ Flag these as gaps:
 ## Step 7 — Write Outputs
 
 > **Prerequisite:** The directory `docs/epic-plans/` must exist (created by `workspace-init.sh`).
-> Write files directly using the codebase tool — GitHub Copilot Agent Mode supports file creation.
+> Use the editFiles tool to create this file — This is the correct tool for file creation in GitHub Copilot Agent Mode.
 > If a write fails, run `workspace-init.sh` first to create the required directories.
 
 ### 7.1 — Execution Plan File
