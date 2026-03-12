@@ -1,7 +1,5 @@
 ---
 description: 'Evaluates agent outputs against golden references using a structured scoring rubric — measures completeness, precision, standards compliance, and actionability'
-model: 'claude-4-opus'
-tools: ['codebase', 'github']
 name: 'Eval Runner'
 ---
 

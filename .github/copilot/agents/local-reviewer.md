@@ -1,7 +1,5 @@
 ---
 description: 'Reviews locally generated code against banking standards, review instructions, and the task plan — flags critical issues, warnings, and suggestions before the developer commits'
-model: 'claude-4-opus'
-tools: ['codebase', 'changes', 'terminalCommand', 'problems']
 name: 'Local Reviewer'
 ---
 

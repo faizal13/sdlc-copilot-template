@@ -1,7 +1,5 @@
 ---
 description: 'Reads an entire ADO Epic with its Features and Stories, translates business requirements into technical stories, builds a dependency graph, and produces a phased execution plan'
-model: 'claude-4-opus'
-tools: ['codebase', 'github', 'azure-devops']
 name: 'Story Refiner'
 ---
 

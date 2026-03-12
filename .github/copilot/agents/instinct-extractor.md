@@ -1,7 +1,5 @@
 ---
 description: 'Analyzes merged PR diffs to extract reusable development patterns, builds institutional memory that makes future agents smarter'
-model: 'claude-4-haiku'
-tools: ['codebase', 'github']
 name: 'Instinct Extractor'
 ---
 

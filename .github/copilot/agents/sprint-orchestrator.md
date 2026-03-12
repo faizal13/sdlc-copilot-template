@@ -1,7 +1,5 @@
 ---
 description: 'Reads the execution plan, checks live story status, and writes a sprint plan file to sprintPlan/ — showing current phase, story statuses, and the exact task-planner commands to run next'
-model: 'claude-4-opus'
-tools: ['codebase', 'github', 'azure-devops']
 name: 'Sprint Orchestrator'
 ---
 

@@ -1,7 +1,5 @@
 ---
 description: 'An agent that helps plan and execute multi-file changes by identifying relevant context and dependencies'
-model: 'claude-4-sonnet'
-tools: ['codebase', 'terminalCommand']
 name: 'Context Architect'
 ---
 

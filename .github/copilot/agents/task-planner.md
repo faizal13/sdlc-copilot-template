@@ -1,7 +1,5 @@
 ---
 description: 'Reads an ADO story or plain task description and creates a structured local task plan file in taskPlan/ — the entry point for the local VS Code development workflow'
-model: 'claude-4-opus'
-tools: ['codebase', 'github']
 name: 'Task Planner'
 ---
 

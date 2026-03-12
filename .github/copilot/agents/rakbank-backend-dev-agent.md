@@ -1,7 +1,5 @@
 ---
 description: 'Autonomous principal-level coding agent for RAKBANK backend microservices — bootstraps projects, implements GitHub Issue specs end-to-end with critical analysis, and delivers production-grade code in one pass'
-model: 'claude-4-sonnet'
-tools: ['codebase', 'terminalCommand', 'github']
 name: 'RAKBANK Backend Dev Agent'
 ---
 

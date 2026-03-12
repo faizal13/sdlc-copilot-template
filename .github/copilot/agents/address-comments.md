@@ -1,7 +1,5 @@
 ---
 description: 'Systematically addresses PR review comments — reads each comment, makes targeted fixes, runs tests, and commits per-comment fixes'
-model: 'claude-4-sonnet'
-tools: ['codebase', 'terminalCommand', 'github']
 name: 'Address Comments'
 ---
 

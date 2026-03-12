@@ -1,7 +1,5 @@
 ---
 description: 'Local principal-level coding agent for RAKBANK backend microservices — bootstraps projects, implements task plan specs end-to-end with critical analysis, and delivers production-grade code in VS Code'
-model: 'claude-4-sonnet'
-tools: ['codebase', 'terminalCommand', 'changes']
 name: 'Local RAKBANK Dev Agent'
 ---
 

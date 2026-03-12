@@ -1,7 +1,5 @@
 ---
 description: 'Reads per-invocation telemetry entries from current-sprint.md, aggregates per-agent statistics, produces a sprint summary, and archives the raw data'
-model: 'claude-4-haiku'
-tools: ['codebase']
 name: 'Telemetry Collector'
 ---
 

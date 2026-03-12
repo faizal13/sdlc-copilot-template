@@ -1,7 +1,5 @@
 ---
 description: 'Scans the codebase for accumulated technical debt patterns, duplicated code, growing complexity, and generates a prioritized remediation plan'
-model: 'claude-4-opus'
-tools: ['codebase', 'terminalCommand']
 name: 'Tech Debt Planner'
 ---
 
