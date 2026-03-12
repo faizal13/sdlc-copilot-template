@@ -182,6 +182,10 @@ Examples:
 
 ## Step 5 — Write the Task Plan File
 
+> **Important:** Use the `codebase` tool to create the file in `taskPlan/`.
+> This directory is created by workspace initialisation (`workspace-init.sh`) and MUST exist.
+> If write fails, check that workspace init was run first.
+
 Write the file using EXACTLY this structure. Do not skip any section.
 
 ```markdown

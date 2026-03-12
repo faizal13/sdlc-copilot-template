@@ -374,7 +374,14 @@ Fix any issues in the issue content before creating.
 
 ## Step 6 — Create the Issue and Output Summary
 
-Create the single GitHub Issue, then output:
+**Mode selection (check automatically):**
+- If GitHub MCP is available → create a real GitHub Issue and record the URL
+- If GitHub MCP is unavailable → write the full issue markdown to `docs/issues/{ADO_ID}-{service-name}-issue.md` using the `codebase` tool, then output the local path
+
+> **Note:** `docs/issues/` is created by workspace initialisation (`workspace-init.sh`) and MUST exist.
+> If write fails, check that workspace init was run first.
+
+Create the single GitHub Issue (or local file), then output:
 
 ```
 GitHub Issue Created

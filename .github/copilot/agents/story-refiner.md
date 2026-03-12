@@ -219,9 +219,14 @@ Flag these as gaps:
 
 ## Step 7 — Write Outputs
 
+> **Important:** Use the `codebase` tool to write all files below.
+> The directories `docs/epic-plans/`, `taskPlan/`, `docs/issues/`, `.copilot/instincts/`
+> are created by workspace initialisation (`workspace-init.sh`) and MUST exist.
+> If a write fails, check that workspace init was run first.
+
 ### 7.1 — Execution Plan File
 
-Save to `docs/epic-plans/EPIC-{id}-execution-plan.md`:
+Write to `docs/epic-plans/EPIC-{id}-execution-plan.md` using the codebase tool:
 
 ```markdown
 # Execution Plan: {Epic Title}
