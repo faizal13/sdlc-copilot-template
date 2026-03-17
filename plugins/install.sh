@@ -115,6 +115,7 @@ else
   echo ""
   while true; do
     read -rp "  Mode [1/2]: " mode_choice
+    mode_choice="${mode_choice//$'\r'/}"   # strip \r (Windows Git Bash CRLF)
     case "$mode_choice" in
       1|local)  MODE="local";  break ;;
       2|hybrid) MODE="hybrid"; break ;;
@@ -138,6 +139,7 @@ else
   echo ""
   while true; do
     read -rp "  Target [1/2]: " target_choice
+    target_choice="${target_choice//$'\r'/}"   # strip \r (Windows Git Bash CRLF)
     case "$target_choice" in
       1|single)    TARGET="single";    break ;;
       2|workspace) TARGET="workspace"; break ;;
@@ -169,6 +171,7 @@ if [ "$TARGET" = "workspace" ]; then
     echo ""
     while true; do
       read -rp "  Repo layout [1/2]: " repo_choice
+      repo_choice="${repo_choice//$'\r'/}"   # strip \r (Windows Git Bash CRLF)
       case "$repo_choice" in
         1) REPOS_ARE_SUBDIRS="true";  break ;;
         2) REPOS_ARE_SUBDIRS="false"; break ;;
@@ -186,6 +189,7 @@ if [ "$TARGET" = "workspace" ]; then
     fi
     echo ""
     read -rp "  Services: " SERVICE_REPOS
+    SERVICE_REPOS="${SERVICE_REPOS//$'\r'/}"   # strip \r (Windows Git Bash CRLF)
     echo ""
   fi
 fi

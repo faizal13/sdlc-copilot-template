@@ -1,0 +1,22 @@
+# ─────────────────────────────────────────────────────────────────────────────
+#  .gitattributes — enforce LF line endings for shell scripts
+#
+#  Without this, Git on Windows converts LF → CRLF when cloning.
+#  Shell scripts with CRLF line endings break silently:
+#  bash reads input as "2\r" which doesn't match case patterns like "2|workspace",
+#  so interactive prompts in install.sh always fall through to the default.
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Shell scripts — always LF (never CRLF on Windows checkout)
+*.sh        text eol=lf
+
+# JSON and YAML — LF
+*.json      text eol=lf
+*.yml       text eol=lf
+*.yaml      text eol=lf
+
+# Markdown — LF
+*.md        text eol=lf
+
+# Git hook scripts (no extension)
+.github/hooks/git/post-commit  text eol=lf
