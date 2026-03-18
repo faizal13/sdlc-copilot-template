@@ -85,10 +85,13 @@ MANIFESTEOF
     # Service repos go FIRST so developers see them at the top of the Explorer.
     # The workspace-config folder (this repo) goes last with a ⚙️ prefix.
     local folders_json="["
-    local has_services=false
+    # files.exclude entries — always hide .checkpoints; also hide each service
+    # subdir from the ⚙️ workspace-config root so they don't appear twice in
+    # VS Code Explorer (once as workspace root, once inside the parent folder).
+    local files_exclude="      \".checkpoints/**\": true"
+    local search_exclude="      \".checkpoints/**\": true,\n      \"docs/agent-telemetry/current-sprint.md\": false"
 
     if [ -n "${SERVICE_REPOS:-}" ]; then
-      has_services=true
       IFS=',' read -ra repos <<< "$SERVICE_REPOS"
       local first_svc=true
       for repo_path in "${repos[@]}"; do
@@ -103,9 +106,13 @@ MANIFESTEOF
         if [ "${REPOS_ARE_SUBDIRS:-true}" = "true" ]; then
           folders_json+="
     {\"path\": \"./$repo_name\", \"name\": \"$repo_name\"}"
+          # Hide the subdir from ⚙️ workspace-config root to prevent double-listing
+          files_exclude+=",\n      \"$repo_name\": true"
+          search_exclude+=",\n      \"$repo_name/**\": true"
         else
           folders_json+="
     {\"path\": \"$repo_path\", \"name\": \"$repo_name\"}"
+          # External repos are not inside the workspace folder — no exclude needed
         fi
       done
       folders_json+=","
@@ -115,6 +122,10 @@ MANIFESTEOF
     folders_json+="
     {\"path\": \".\", \"name\": \"⚙️ $ws_name\"}
   ]"
+
+    # Expand escape sequences in exclude blocks
+    files_exclude=$(printf "%b" "$files_exclude")
+    search_exclude=$(printf "%b" "$search_exclude")
 
     cat > "$ws_file" << WSEOF
 {
@@ -126,12 +137,11 @@ MANIFESTEOF
     "github.copilot.chat.codeGeneration.useInstructionFiles": true,
 
     "files.exclude": {
-      ".checkpoints/**": true
+$files_exclude
     },
 
     "search.exclude": {
-      ".checkpoints/**": true,
-      "docs/agent-telemetry/current-sprint.md": false
+$search_exclude
     },
 
     "editor.formatOnSave": true,
