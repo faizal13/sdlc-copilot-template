@@ -94,7 +94,16 @@ For each item, extract:
 - Read each Feature — get the list of child Stories
 - Read each Story — get full details
 - MAX depth: Epic → Feature → Story (3 levels)
-- If an item has >20 children, read the first 20 and warn "truncated — {N} items not read"
+- **Never truncate** — if an item has more children than a single MCP call returns,
+  read in batches of 20 until ALL children are retrieved:
+  ```
+  batch 1: children 1–20   → process
+  batch 2: children 21–40  → process
+  batch 3: children 41–60  → process
+  ... continue until response returns fewer than 20 items (signals last batch)
+  ```
+  Log each batch: `📦 Batch {N}: read {count} items ({total so far} / {total})`
+  Do NOT stop early. Every story must be read.
 
 ---
 
@@ -408,7 +417,10 @@ After the output summary, append an entry to `docs/agent-telemetry/current-sprin
 
 ### Iteration Limits
 - MCP calls to read ADO items: MAX 3 retries per item. Skip after 3 failures.
-- Total ADO items to read: MAX 50 (Epic + Features + Stories). Warn if exceeded.
+- Total ADO items: No hard cap — read ALL features and stories in the epic.
+  If the total exceeds 100 items, use the checkpoint mechanism (Step 0) to
+  avoid context window exhaustion: write a checkpoint after each feature,
+  so a restart can resume rather than re-read from the beginning.
 - File reads: If a solution design file doesn't exist, warn — do not invent content.
 - Technical story creation in ADO: MAX 3 per BA story. Flag if more needed.
 
