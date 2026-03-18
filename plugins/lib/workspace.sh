@@ -81,36 +81,75 @@ MANIFESTEOF
   local ws_file="$TARGET_DIR/${ws_name}.code-workspace"
 
   if [ ! -f "$ws_file" ]; then
-    # Build folders array
-    local folders_json="[
-    {\"name\": \"workspace-config\", \"path\": \".\"}"
+    # ── Build folders array ───────────────────────────────────────────────────
+    # Service repos go FIRST so developers see them at the top of the Explorer.
+    # The workspace-config folder (this repo) goes last with a ⚙️ prefix.
+    local folders_json="["
+    local has_services=false
 
     if [ -n "${SERVICE_REPOS:-}" ]; then
+      has_services=true
       IFS=',' read -ra repos <<< "$SERVICE_REPOS"
+      local first_svc=true
       for repo_path in "${repos[@]}"; do
         repo_path=$(echo "$repo_path" | xargs)
         local repo_name
         repo_name=$(basename "$repo_path")
-        if [ "${REPOS_ARE_SUBDIRS:-true}" = "true" ]; then
-          folders_json+=",
-    {\"name\": \"$repo_name\", \"path\": \"./$repo_name\"}"
+        if [ "$first_svc" = true ]; then
+          first_svc=false
         else
-          folders_json+=",
-    {\"name\": \"$repo_name\", \"path\": \"$repo_path\"}"
+          folders_json+=","
+        fi
+        if [ "${REPOS_ARE_SUBDIRS:-true}" = "true" ]; then
+          folders_json+="
+    {\"path\": \"./$repo_name\", \"name\": \"$repo_name\"}"
+        else
+          folders_json+="
+    {\"path\": \"$repo_path\", \"name\": \"$repo_name\"}"
         fi
       done
+      folders_json+=","
     fi
 
+    # Workspace-config always last
     folders_json+="
+    {\"path\": \".\", \"name\": \"⚙️ $ws_name\"}
   ]"
 
     cat > "$ws_file" << WSEOF
 {
   "folders": $folders_json,
   "settings": {
-    "chat.agent.enabled": true,
-    "chat.useAgentSkills": true,
-    "github.copilot.chat.codeGeneration.useInstructionFiles": true
+    "github.copilot.chat.agent.enabled": true,
+    "github.copilot.chat.agentSkills.enabled": true,
+    "github.copilot.chat.experimental.agents": true,
+    "github.copilot.chat.codeGeneration.useInstructionFiles": true,
+
+    "files.exclude": {
+      ".checkpoints/**": true
+    },
+
+    "search.exclude": {
+      ".checkpoints/**": true,
+      "docs/agent-telemetry/current-sprint.md": false
+    },
+
+    "editor.formatOnSave": true,
+
+    "sdlc-copilot.plugin": {
+      "workspaceManifest": ".github/copilot/workspace-manifest.json",
+      "agentsDir": ".github/agents",
+      "instinctsIndex": ".copilot/instincts/INDEX.json",
+      "checkpointsDir": ".checkpoints",
+      "telemetryFile": "docs/agent-telemetry/current-sprint.md",
+      "evalsDir": "evals"
+    }
+  },
+  "extensions": {
+    "recommendations": [
+      "GitHub.copilot",
+      "GitHub.copilot-chat"
+    ]
   }
 }
 WSEOF
