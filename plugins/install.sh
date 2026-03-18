@@ -260,6 +260,7 @@ echo "    .checkpoints/                Agent phase recovery (gitignored)"
 echo "    contexts/                    Domain context files (you create these)"
 echo "    docs/solution-design/        Architecture docs (you create these)"
 echo "    docs/epic-plans/             @story-refiner execution plans"
+echo "    docs/agent-feedback/         Per-story feedback → agent improvement"
 echo "    docs/agent-telemetry/        Live telemetry log"
 echo "    docs/ai-usage/               AI usage audit trail"
 echo "    docs/issues/                 @story-analyzer local issue drafts"
@@ -280,6 +281,7 @@ if [ "$TARGET" = "workspace" ]; then
   echo "  WORKSPACE:"
   echo "    ${WORKSPACE_NAME}.code-workspace   VS Code multi-root workspace"
   echo "    .github/copilot/workspace-manifest.json"
+  echo "    GETTING-STARTED.md               Developer onboarding guide"
 fi
 
 echo ""

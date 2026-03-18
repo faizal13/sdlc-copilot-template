@@ -65,6 +65,12 @@ install_core() {
     done
   fi
 
+  # copilot-instructions.md — workspace-level Copilot code generation instructions
+  if [ -f "$TEMPLATE_ROOT/.github/copilot-instructions.md" ]; then
+    copy_file "$TEMPLATE_ROOT/.github/copilot-instructions.md" \
+              "$TARGET_DIR/.github/copilot-instructions.md"
+  fi
+
   echo ""
 
   # ════════════════════════════════════════════════════════════════════════════
@@ -353,6 +359,33 @@ TRACKEOF
       copy_file "$ref_file" "$TARGET_DIR/evals/golden-references/$fname"
     fi
   done
+
+  # ── docs/agent-feedback/ ─────────────────────────────────────────────────
+  mkdir -p "$TARGET_DIR/docs/agent-feedback"
+  echo "  [dir]  docs/agent-feedback/"
+  if [ -f "$TEMPLATE_ROOT/docs/agent-feedback/TEMPLATE.md" ]; then
+    copy_file "$TEMPLATE_ROOT/docs/agent-feedback/TEMPLATE.md" \
+              "$TARGET_DIR/docs/agent-feedback/TEMPLATE.md"
+  fi
+  if [ ! -f "$TARGET_DIR/docs/agent-feedback/README.md" ]; then
+    cat > "$TARGET_DIR/docs/agent-feedback/README.md" << 'FBEOF'
+# Agent Feedback
+
+Fill in `TEMPLATE.md` after each story to capture what the agents got right or wrong.
+Over time this drives improvements to agent definitions.
+
+## Naming convention
+
+Copy `TEMPLATE.md` and rename it: `{ADO-ID}-feedback.md`
+
+## Referenced by
+
+- `@local-instinct-learner` — reads feedback files when learning new patterns
+FBEOF
+    echo "  [add]  docs/agent-feedback/README.md"
+  else
+    echo "  [skip] docs/agent-feedback/README.md"
+  fi
 
   # ── logs/copilot/ ─────────────────────────────────────────────────────────
   mkdir -p "$TARGET_DIR/logs/copilot"
