@@ -9,7 +9,8 @@
 #    - Auto-instructions (6)        → .github/instructions/*.instructions.md
 #    - Instruction examples (4)     → .github/instructions/examples/
 #    - VS Code skills (4)           → .github/skills/{name}/SKILL.md
-#    - Copilot session logger hooks → .github/hooks/session-logger/
+#    - Copilot session logger hooks → .github/hooks/session-logger/ (.sh + .js)
+#    - VS Code hooks registry       → .github/copilot/hooks.json
 #    - Git post-commit AI usage hook→ .github/hooks/git/
 #    - Runtime directories + README → contexts/, docs/, evals/, .copilot/, etc.
 #
@@ -97,23 +98,24 @@ install_core() {
   # ════════════════════════════════════════════════════════════════════════════
   print_section "Hooks  →  session-logger + git post-commit"
 
-  # Session logger shell scripts
+  # Session logger scripts (.sh + .js) and README
   mkdir -p "$TARGET_DIR/.github/hooks/session-logger"
-  for sh_file in "$TEMPLATE_ROOT/.github/hooks/session-logger/"*.sh; do
-    if [ -f "$sh_file" ]; then
-      copy_executable "$sh_file" \
-        "$TARGET_DIR/.github/hooks/session-logger/$(basename "$sh_file")"
+  for script in "$TEMPLATE_ROOT/.github/hooks/session-logger/"*.sh \
+                "$TEMPLATE_ROOT/.github/hooks/session-logger/"*.js; do
+    if [ -f "$script" ]; then
+      copy_executable "$script" \
+        "$TARGET_DIR/.github/hooks/session-logger/$(basename "$script")"
     fi
   done
-  # Session logger README
   if [ -f "$TEMPLATE_ROOT/.github/hooks/session-logger/README.md" ]; then
     copy_file "$TEMPLATE_ROOT/.github/hooks/session-logger/README.md" \
               "$TARGET_DIR/.github/hooks/session-logger/README.md"
   fi
-  # hooks.json → .github/hooks/session-logger.json (official VS Code location)
-  if [ -f "$TEMPLATE_ROOT/.github/hooks/session-logger/hooks.json" ]; then
-    copy_file "$TEMPLATE_ROOT/.github/hooks/session-logger/hooks.json" \
-              "$TARGET_DIR/.github/hooks/session-logger.json"
+  # hooks.json → .github/copilot/hooks.json  (VS Code's required lookup path)
+  mkdir -p "$TARGET_DIR/.github/copilot"
+  if [ -f "$TEMPLATE_ROOT/.github/copilot/hooks.json" ]; then
+    copy_file "$TEMPLATE_ROOT/.github/copilot/hooks.json" \
+              "$TARGET_DIR/.github/copilot/hooks.json"
   fi
 
   # Git post-commit hook (AI usage auto-logger)
