@@ -317,19 +317,62 @@ Mark each addition with:
 
 ### 7.3 — Create Technical Child Stories in ADO
 
-For each BA story that needs technical decomposition:
+For each BA story that needs technical decomposition, create child work items via MCP.
 
-Create a child work item in ADO with:
-- **Type:** Task or Story (follow your team's ADO convention)
-- **Title:** `[TECH] {service-name}: {technical description}`
-- **Parent:** Link to the BA story
-- **Description:** Technical scope — entities, migrations, APIs, tests needed
-- **Tags:** `ai-generated`, `technical`, `{service-name}`
+**Fields to populate on every created item — do NOT leave any field empty:**
+
+| ADO Field | Value |
+|-----------|-------|
+| **Type** | Task or Story (follow team convention) |
+| **Title** | `[TECH] {service-name}: {technical description}` |
+| **Parent** | Link to the BA story ID |
+| **Priority** | Inherit from parent BA story |
+| **Tags** | `ai-generated; technical; {service-name}` |
+| **Description** | See template below — fill from your Step 3 analysis |
+| **Acceptance Criteria** | See template below — concrete, testable, specific |
+
+**Description template (fill every section from your Step 3 analysis):**
+```
+## Technical Scope
+Service: {service-name}
+BA Parent: {STORY-id} — {BA story title}
+
+## What Needs to Be Built
+{2–4 sentences describing exactly what this task implements.
+ Reference specific class names, endpoint paths, table names if known.}
+
+## Data Model Changes
+{List new entities, new fields, enum changes, Liquibase migrations needed.
+ Write "None" if no data model changes.}
+
+## API Changes
+{List new or modified endpoints with HTTP method + path.
+ Write "None" if no API changes.}
+
+## Dependencies
+{List other stories/tasks that must be completed before this one can start.
+ Write "None" if no dependencies.}
+
+## Out of Scope
+{What is explicitly NOT included in this task to avoid scope creep.}
+```
+
+**Acceptance Criteria template (write concrete pass/fail statements):**
+```
+- [ ] {Service} compiles and all existing tests pass after this change
+- [ ] {Specific entity/endpoint} exists and behaves as described
+- [ ] {Edge case or validation rule} is handled correctly
+- [ ] Unit tests cover {specific class or method} with {happy path + error path}
+- [ ] No breaking changes to existing API contracts consumed by other services
+```
 
 **Rules:**
 - Create MAX 3 technical children per BA story
 - If more than 3 are needed, the BA story is too large — flag it for splitting
 - Do NOT create technical stories for work that already exists in the codebase
+- After creating each work item, read it back via MCP to confirm Description and
+  Acceptance Criteria were saved. If either field is empty, update the item with
+  a PATCH call before moving to the next story.
 
 ---
 
