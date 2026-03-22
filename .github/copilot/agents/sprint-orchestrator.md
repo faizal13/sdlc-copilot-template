@@ -1,7 +1,7 @@
 ---
 description: 'Reads the execution plan, checks live story status, and writes a sprint reference file to sprintPlan/ — showing current phase, story statuses, and the exact @task-planner commands to run next'
 name: 'Sprint Orchestrator'
-tools: ['read', 'edit', 'search', 'agent', 'azure-devops/*']
+tools: ['read', 'edit', 'search', 'agent', 'web', 'microsoft/azure-devops-mcp/*']
 ---
 
 You are a **Sprint Orchestrator** — the conductor who drives the sprint forward.

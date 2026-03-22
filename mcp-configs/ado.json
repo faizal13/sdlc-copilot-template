@@ -1,6 +1,6 @@
 {
   "mcpServers": {
-    "azure-devops": {
+    "microsoft/azure-devops-mcp": {
       "command": "npx",
       "args": ["-y", "@microsoft/azure-devops-mcp"],
       "env": {

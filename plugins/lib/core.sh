@@ -322,6 +322,24 @@ ISSEOF
     echo "  [skip] docs/issues/README.md"
   fi
 
+  # ── docs/reviews/ ────────────────────────────────────────────────────────
+  mkdir -p "$TARGET_DIR/docs/reviews"
+  echo "  [dir]  docs/reviews/"
+  if [ ! -f "$TARGET_DIR/docs/reviews/README.md" ]; then
+    cat > "$TARGET_DIR/docs/reviews/README.md" << 'REVEOF'
+# Code Reviews
+
+`@local-reviewer` saves review reports here after each review run.
+
+Each file is named after the branch: `{branch-name}-review.md`
+
+These files persist across sessions so other agents can reference past reviews.
+REVEOF
+    echo "  [add]  docs/reviews/README.md"
+  else
+    echo "  [skip] docs/reviews/README.md"
+  fi
+
   # ── evals/ ────────────────────────────────────────────────────────────────
   mkdir -p "$TARGET_DIR/evals/golden-references"
   echo "  [dir]  evals/golden-references/"
