@@ -10,7 +10,7 @@
 #    - Instruction examples (4)     → .github/instructions/examples/
 #    - VS Code skills (4)           → .github/skills/{name}/SKILL.md
 #    - Copilot session logger hooks → .github/hooks/session-logger/ (.sh + .js)
-#    - VS Code hooks registry       → .github/copilot/hooks.json
+#    - Claude Code hooks registry   → .github/hooks/session-logger.json
 #    - Git post-commit AI usage hook→ .github/hooks/git/
 #    - Runtime directories + README → contexts/, docs/, evals/, .copilot/, etc.
 #
@@ -111,11 +111,10 @@ install_core() {
     copy_file "$TEMPLATE_ROOT/.github/hooks/session-logger/README.md" \
               "$TARGET_DIR/.github/hooks/session-logger/README.md"
   fi
-  # hooks.json → .github/copilot/hooks.json  (VS Code's required lookup path)
-  mkdir -p "$TARGET_DIR/.github/copilot"
-  if [ -f "$TEMPLATE_ROOT/.github/copilot/hooks.json" ]; then
-    copy_file "$TEMPLATE_ROOT/.github/copilot/hooks.json" \
-              "$TARGET_DIR/.github/copilot/hooks.json"
+  # session-logger.json → .github/hooks/session-logger.json (Claude Code hooks registry)
+  if [ -f "$TEMPLATE_ROOT/.github/hooks/session-logger.json" ]; then
+    copy_file "$TEMPLATE_ROOT/.github/hooks/session-logger.json" \
+              "$TARGET_DIR/.github/hooks/session-logger.json"
   fi
 
   # Git post-commit hook (AI usage auto-logger)
