@@ -36,14 +36,15 @@ Large epics (10+ features, 30+ stories) may exhaust the context window mid-analy
 Check for a previous checkpoint before starting:
 
 1. Look for `.checkpoints/story-refiner-EPIC-{id}.json`
-2. If found:
-   - Read the checkpoint
-   - It contains: `features_read` (list of Feature IDs already analyzed) and `partial_analysis` (file path to partial output)
-   - Resume from the next unread Feature
-   - Log: `♻️ Resuming EPIC-{id} — {count} features already read, continuing from FEATURE-{next}`
+2. If found, check `status`:
+   - `"status": "complete"` → ask the developer: "A completed run exists for EPIC-{id} ({timestamp_completed}). Run again to refresh? (yes/no)". If no, stop. If yes, proceed from Step 1.
+   - `"status": "in-progress"` → resume: read `features_read` and `features_remaining`, resume from the next unread Feature. Log: `♻️ Resuming EPIC-{id} — {count} features already read, continuing from FEATURE-{next}`
 3. If no checkpoint: proceed normally from Step 1
 
 ### Checkpoint Write — After Each Feature
+
+Before writing the first checkpoint, ensure the directory exists:
+- Check if `.checkpoints/` exists. If not, create it using the `edit` tool by writing the checkpoint file — the tool will create parent directories automatically.
 
 After completing the technical analysis (Step 3) for each Feature, write/update:
 
@@ -52,6 +53,7 @@ After completing the technical analysis (Step 3) for each Feature, write/update:
 {
   "agent": "story-refiner",
   "epic": "EPIC-{id}",
+  "status": "in-progress",
   "timestamp": "{ISO-8601}",
   "features_read": ["FEATURE-101", "FEATURE-102"],
   "stories_read": ["STORY-201", "STORY-202", "STORY-203"],
@@ -61,7 +63,7 @@ After completing the technical analysis (Step 3) for each Feature, write/update:
 }
 ```
 
-After ALL features are read and the execution plan is complete: **DELETE** the checkpoint file.
+After ALL features are read and the execution plan is complete: update the checkpoint file with `"status": "complete"` and `"timestamp_completed": "{ISO-8601}"` — **do NOT delete it**. The completed checkpoint serves as a run record and prevents accidental re-runs on the same epic.
 
 ---
 

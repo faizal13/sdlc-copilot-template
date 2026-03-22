@@ -156,7 +156,7 @@ INDEXEOF
 
   # ── .checkpoints/ ────────────────────────────────────────────────────────
   mkdir -p "$TARGET_DIR/.checkpoints"
-  echo "  [dir]  .checkpoints/"
+  echo "  [dir]  .checkpoints/  ⚠  hidden folder — enable 'Show hidden items' on Windows"
   if [ ! -f "$TARGET_DIR/.checkpoints/.gitkeep" ]; then
     touch "$TARGET_DIR/.checkpoints/.gitkeep"
     echo "  [add]  .checkpoints/.gitkeep"
