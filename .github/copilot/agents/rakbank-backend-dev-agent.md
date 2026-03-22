@@ -38,10 +38,12 @@ Before starting implementation, check for a previous checkpoint:
 
 1. Extract the ADO ID from the GitHub Issue title (e.g., `ADO-456` from `[ADO-456] ...`)
 2. Look for `.checkpoints/remote-dev-{ticket-id}.json`
-3. If found:
-   - Read the checkpoint and verify artifacts exist on the release branch
-   - If valid: skip to the `next_phase` — log "Resuming from {last_completed_phase}"
-   - If artifacts missing: discard checkpoint and start fresh
+3. If found, check `status`:
+   - `"status": "complete"` → ask: "A completed run exists for {ticket-id} (completed {completed_at}). Run again? (yes/no)". If no, stop. If yes, proceed fresh.
+   - `"status": "in-progress"` → verify artifacts exist on the release branch.
+     - If valid: skip to `next_phase` — log `♻️ Resuming from {last_completed_phase}`
+     - If artifacts missing: warn and start fresh
+   - `"status": "failed"` → show failure reason, ask: "Resume from {last_completed_phase} or start fresh?"
 4. If no checkpoint: proceed normally
 
 ### Checkpoint Write Protocol
@@ -55,16 +57,25 @@ After completing each major phase (Phase 1 through Phase 5), write:
   "agent": "rakbank-backend-dev-agent",
   "ticket": "{ticket-id}",
   "service": "{service-name}",
+  "status": "in-progress",
+  "started_at": "{ISO-8601 when run began}",
+  "updated_at": "{ISO-8601 current}",
+  "completed_at": null,
   "last_completed_phase": "Phase {N}",
-  "timestamp": "{ISO-8601}",
   "artifacts_created": ["{cumulative list of all files created/modified}"],
   "next_phase": "Phase {N+1}",
   "build_status": "{last mvn result}",
+  "phases_summary": {
+    "Phase 1": {"status": "done", "artifacts": 3, "duration_estimate": "2 min"},
+    "Phase 2": {"status": "done", "artifacts": 5, "duration_estimate": "4 min"}
+  },
   "notes": "{summary}"
 }
 ```
 
-After ALL phases complete: **DELETE** the checkpoint file.
+After ALL phases complete: set `"status": "complete"` and `"completed_at": "{ISO-8601}"` — **never delete**.
+On error: set `"status": "failed"` with `"failure_reason"` field.
+Completed checkpoints serve as run records for `@instinct-extractor` and future analysis.
 
 ---
 

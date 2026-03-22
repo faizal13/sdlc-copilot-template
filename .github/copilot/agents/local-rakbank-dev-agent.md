@@ -33,21 +33,22 @@ Before loading any context, check if a previous run left a checkpoint:
 
 1. Extract the ticket ID from the task plan filename (e.g., `ADO-456` from `taskPlan/ADO-456-application-service.md`)
 2. Look for `.checkpoints/local-dev-{ticket-id}.json`
-3. If found:
-   - Read the checkpoint file
-   - Verify that each file in `artifacts_created` still exists on disk
-   - If all artifacts exist:
-     ```
-     ♻️ RESUMING from checkpoint
-     Last completed: {last_completed_phase}
-     Artifacts verified: {count} files exist
-     Skipping to: {next_phase}
-     ```
-   - Skip directly to the `next_phase` listed in the checkpoint
-   - If artifacts are MISSING: warn and restart from Phase 0
-     ```
-     ⚠️ Checkpoint found but artifacts missing. Starting fresh.
-     ```
+3. If found, check `status`:
+   - `"status": "complete"` → ask the developer: "A completed run exists for {ticket-id} (completed {completed_at}). Run again? (yes/no)". If no, stop. If yes, proceed from Phase 0.
+   - `"status": "in-progress"` → verify that each file in `artifacts_created` still exists on disk:
+     - If all artifacts exist:
+       ```
+       ♻️ RESUMING from checkpoint
+       Last completed: {last_completed_phase}
+       Artifacts verified: {count} files exist
+       Skipping to: {next_phase}
+       ```
+     - Skip directly to the `next_phase` listed in the checkpoint
+     - If artifacts are MISSING: warn and restart from Phase 0
+       ```
+       ⚠️ Checkpoint found but artifacts missing. Starting fresh.
+       ```
+   - `"status": "failed"` → show the failure reason and ask: "Previous run failed at {last_completed_phase}. Resume from there or start fresh?"
 4. If no checkpoint found: proceed normally from Phase 0
 
 ---
@@ -1018,22 +1019,33 @@ After completing each major phase (Phase 1 through Phase 5), write or update the
   "agent": "local-rakbank-dev-agent",
   "ticket": "{ticket-id}",
   "service": "{service-name}",
+  "status": "in-progress",
+  "started_at": "{ISO-8601 when run began}",
+  "updated_at": "{ISO-8601 current}",
+  "completed_at": null,
   "last_completed_phase": "Phase {N}",
-  "timestamp": "{ISO-8601}",
   "artifacts_created": [
     "{list every file created or modified so far}"
   ],
   "next_phase": "Phase {N+1} — {phase name}",
   "build_status": "{last mvn compile/verify result}",
+  "phases_summary": {
+    "Phase 1": {"status": "done", "artifacts": 3, "duration_estimate": "2 min"},
+    "Phase 2": {"status": "done", "artifacts": 5, "duration_estimate": "4 min"},
+    "Phase 3": {"status": "in-progress", "artifacts": 0, "duration_estimate": null}
+  },
   "notes": "{brief summary of what was accomplished}"
 }
 ```
 
 **Rules:**
-- Overwrite the checkpoint after EACH phase (not append — replace)
+- Overwrite the checkpoint after EACH phase (not append — replace the full file)
 - List ALL artifacts cumulatively (Phase 3 checkpoint includes Phase 1+2+3 artifacts)
-- After ALL phases complete successfully: **DELETE** the checkpoint file (clean exit)
+- `phases_summary` tracks what each phase produced — valuable for instinct learning
+- After ALL phases complete successfully: set `"status": "complete"` and `"completed_at": "{ISO-8601}"` — **never delete**
+- If the agent encounters an error: set `"status": "failed"` with a `"failure_reason"` field
 - If the agent is interrupted mid-phase, the checkpoint still points to the LAST COMPLETE phase
+- Completed checkpoints serve as run records for `@local-instinct-learner` and future analysis
 
 ---
 
