@@ -56,7 +56,7 @@ Understand the 4 scoring dimensions:
 |-------|---------------------|
 | @story-analyzer | GitHub Issue with label `ai-generated` + ADO ID in title |
 | @task-planner | `taskPlan/{ADO-ID}-*.md` |
-| @local-reviewer | Most recent review output in chat history (or review log if saved) |
+| @local-reviewer | `docs/reviews/{branch-name}-review.md` (persistent file with full report + JSON block) |
 | @story-refiner | `docs/epic-plans/EPIC-{id}-execution-plan.md` |
 
 Read the FULL output. Do not skim.

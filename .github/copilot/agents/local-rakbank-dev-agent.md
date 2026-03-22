@@ -988,6 +988,7 @@ After all files are generated and the build is green, output:
 ## What to Do Next
 1. Review the generated code for business logic correctness
 2. Run @local-reviewer to get a structured review
+   → Review report saved to: `docs/reviews/{branch-name}-review.md`
 3. Address any review findings via prompts
 4. When satisfied: git add → git commit (AI usage auto-logged)
 5. Optionally: @local-instinct-learner to capture new patterns

@@ -30,7 +30,7 @@ Reads the most recent review comments from the current branch's PR.
 Read all unresolved review comments on the current PR:
 - Inline code comments (file + line specific)
 - General PR comments
-- AI review comments (from @local-reviewer or Agent 3)
+- AI review comments (from @local-reviewer — saved at `docs/reviews/{branch-name}-review.md`)
 
 Categorize each comment:
 | Category | Action |

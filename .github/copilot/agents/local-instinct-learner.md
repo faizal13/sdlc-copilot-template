@@ -19,6 +19,7 @@ something worth preserving from a coding or review session.
 
 The developer invokes you after:
 1. `@local-reviewer` has flagged issues that were then fixed — the fixes are learnings
+   (read the review report from `docs/reviews/{branch-name}-review.md` for context)
 2. A prompt-driven correction produced a better pattern than what was generated
 3. The developer explicitly recognises a repeatable pattern worth capturing
 
