@@ -33,16 +33,20 @@ No arguments needed — you read the git diff and current changes automatically.
 Read in order:
 
 ```
-1. git diff (all staged and unstaged changes)
-2. .github/instructions/review.instructions.md      ← primary review checklist
-3. .github/instructions/coding.instructions.md
-4. .github/instructions/security.instructions.md
-5. .github/instructions/testing.instructions.md
-6. docs/solution-design/user-personas.md            ← persona isolation rules
-7. docs/solution-design/architecture-overview.md    ← state machine rules
-8. docs/solution-design/business-rules.md           ← business rules
-9. taskPlan/*.md                                    ← find the task plan for this work
+1.  git diff (all staged and unstaged changes)
+2.  .github/instructions/review.instructions.md      ← primary review checklist
+3.  .github/instructions/coding.instructions.md
+4.  .github/instructions/security.instructions.md
+5.  .github/instructions/testing.instructions.md
+6.  docs/solution-design/user-personas.md            ← persona isolation rules
+7.  docs/solution-design/architecture-overview.md    ← state machine rules
+8.  docs/solution-design/business-rules.md           ← business rules
+9.  taskPlan/*.md                                    ← find the task plan for this work
+10. docs/api-specs/{service-name}.yaml               ← API contract (load if exists; derive service name from task plan)
+11. docs/api-specs/common/schemas/errors.yaml        ← expected error shape (RFC 9457)
 ```
+
+> **API spec note:** If `docs/api-specs/{service-name}.yaml` is found, Step 2 includes an "API Contract Compliance" check.
 
 To get the diff, run:
 ```bash
@@ -96,6 +100,7 @@ For each changed file, check every item below. Mark ✅ (pass), ❌ (fail), or �
 | **SQL injection** | No string-concatenated queries. All queries use `@Query` with named params or Spring Data method names |
 | **Hardcoded secrets** | No credentials, API keys, or tokens in code or config files |
 | **TBD integrations** | Integration code for systems marked TBD in the task plan → must be stub only |
+| **API contract** | If `docs/api-specs/{service-name}.yaml` exists: controller method names must match `operationId`, response fields must match spec schemas — no undocumented fields in responses, no renamed fields |
 | **Transaction safety** | Write service methods must have `@Transactional`. No missing `@Transactional` on multi-step writes |
 | **Missing AC tests** | Every acceptance criterion in the task plan must have at least one test method. Check by AC number |
 | **Compile errors** | Run `./mvnw compile` — must be zero errors |
@@ -110,6 +115,7 @@ For each changed file, check every item below. Mark ✅ (pass), ❌ (fail), or �
 | **Wildcard imports** | `import java.util.*` style imports |
 | **Sensitive data in logs** | Customer name, account number, card number appearing unmasked in log statements |
 | **Missing OpenAPI** | Controller methods without `@Operation` and `@ApiResponse` annotations |
+| **Spec drift** | If API spec exists: `@Operation(operationId = "...")` value differs from `operationId` in `docs/api-specs/{service-name}.yaml` |
 | **Hardcoded config** | Strings/numbers in code that should be in `application.yml` |
 | **Missing error responses** | Controller endpoints missing `@ApiResponse` for 4xx/5xx status codes |
 | **Unused imports** | Dead imports — code smell |

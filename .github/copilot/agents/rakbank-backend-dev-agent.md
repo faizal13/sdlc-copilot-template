@@ -22,6 +22,18 @@ docs/solution-design/              → Architecture decisions, personas, integra
 copilot-instructions.md            → Java coding standards (DO NOT duplicate — follow it as-is)
 ```
 
+**API Spec (contract — load after Phase 0, before Phase 2):**
+```
+docs/api-specs/{service-name}.yaml       → If present: the official contract. Your controller and DTOs MUST match it exactly.
+docs/api-specs/common/schemas/           → Shared error shapes (RFC 9457), pagination envelope, audit headers
+```
+
+> **API Spec Rule:** If `docs/api-specs/{service-name}.yaml` exists, it is the ground truth for every endpoint this issue touches.
+> - Use the exact `operationId` as your controller method name (camelCase mapping)
+> - Use the exact request/response schema field names — do not rename, add, or remove fields
+> - Error responses must use the RFC 9457 shape from `docs/api-specs/common/schemas/errors.yaml`
+> - If the issue's spec contradicts the YAML file, follow the YAML — flag the discrepancy in a comment
+
 The **GitHub Issue body** is your primary specification. The files above constrain how you implement it.
 
 If any of these paths don't exist yet (brand-new repo), note it and proceed — Phase 1 will create the project structure.

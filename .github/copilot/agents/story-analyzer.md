@@ -32,6 +32,8 @@ Load these folders from the repository and keep them in context:
 - `contexts/` — all domain context files
 - `docs/solution-design/` — all solution design files (architecture, personas, business rules, integrations)
 - `docs/epic-plans/` — execution plans from @story-refiner (if any exist)
+- `docs/api-specs/{service-name}.yaml` — API contract for the target service (load after Step 1 when service is known; if the file exists, it defines the contract the implementation must follow)
+- `docs/api-specs/common/` — shared error schemas (RFC 9457), pagination envelope, audit headers (load if directory exists)
 
 If any of these files are empty skeletons, warn the user before proceeding.
 
@@ -103,6 +105,21 @@ Read all files from `docs/solution-design/` and `contexts/`:
 - Check for workflow/BPMN impact (if the project uses Flowable or similar)
 - Check if any external integrations are involved — note their contract status (Confirmed / TBD)
 - Flag any conflicts or gaps between the story and the solution design — do not guess or fill gaps
+
+### Step 2a — Check API Spec (If Exists)
+
+After identifying the target service, check `docs/api-specs/{service-name}.yaml`:
+
+**If the file exists:**
+1. Find the operation(s) this story implements — match by path + method
+2. Extract the `operationId`, request body schema ref, and response schema refs
+3. Note any path parameters, query parameters, and required headers
+4. Record these in the GitHub Issue under "API Spec Reference" — the coding agent MUST implement to these exact contracts
+5. Flag any discrepancy between the ADO story ACs and the API spec — both must align
+
+**If the file does not exist:**
+- Note: "No API spec found for {service-name}. Run `@api-architect` to generate one if this story adds or changes API endpoints."
+- Proceed without spec — code the endpoints to the ACs as described
 
 ### Cross-Service Impact Detection
 If this story requires changes across multiple microservices:
@@ -252,6 +269,20 @@ ISSUE-METADATA-JSON -->
 
 If no data model changes: "No data model changes required."
 
+## API Spec Reference
+<!-- From docs/api-specs/{service-name}.yaml — populated by @story-analyzer if spec exists -->
+- **Spec file:** `docs/api-specs/{service-name}.yaml` — or "Not generated yet — run @api-architect"
+- **Operations this story implements:**
+  | operationId | Method | Path | Request Schema | Response Schema |
+  |-------------|--------|------|----------------|-----------------|
+  | `{operationId}` | {GET/POST/…} | `{/path}` | `{$ref}` | `{$ref}` |
+- **Common schemas to reuse:** `docs/api-specs/common/schemas/errors.yaml` for error responses
+
+> ⚠️ The coding agent MUST produce controller + DTO code that exactly matches the schemas above.
+> Do NOT invent new field names or shapes — use what is defined in the spec.
+
+If no spec: "No API spec available. Implement endpoints per the API Changes section below."
+
 ## API Changes
 ### {HTTP Method} {/path}
 - **Access:** `{ROLES}`
@@ -323,6 +354,7 @@ If no reuse inventory: "No existing classes to reuse — greenfield implementati
 - [ ] Liquibase changeSet id is unique — no collision with other open PRs
 - [ ] PR title includes `ADO-{ADO_ID}`
 - [ ] `docs/ai-usage/sprint-{N}/ADO-{ADO_ID}.md` created
+- [ ] If API spec exists: controller method signatures match `operationId` and schemas in `docs/api-specs/{service-name}.yaml` — no undocumented fields in responses
 
 ## Clarifications Needed
 {list — or "None"}

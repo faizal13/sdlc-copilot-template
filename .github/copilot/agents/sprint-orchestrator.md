@@ -50,6 +50,18 @@ Also read:
 - `docs/epic-plans/EPIC-{id}*.md` (fallback) — if ADO MCP is unavailable, read story details from execution plan files
 - `.copilot/instincts/INDEX.json` — to list relevant instincts per story
 - `sprintPlan/EPIC-{id}-sprint-status.md` — if it exists, resume from last known state
+- `docs/api-specs/` — check whether API specs have been generated for the services in this epic
+
+**API Spec Readiness Check:**
+If the execution plan contains stories that add or change API endpoints AND `docs/api-specs/` has no spec files yet:
+```
+⚠️  API specs not yet generated for this epic.
+Best practice: Run @api-architect EPIC-{id} before starting story implementation.
+This generates industry-standard OpenAPI 3.1 contracts that @task-planner and @rakbank-backend-dev-agent will follow.
+
+Proceed without API specs? (yes / no — if no, run @api-architect first)
+```
+If the developer proceeds without specs, log it as a gap in the sprint status file.
 
 ---
 
@@ -86,6 +98,10 @@ If all phases are complete, write the completion file (see Step 6b) and stop.
 
 ```
 📋 EPIC-{id} — Phase {N} is active with {count} READY stories.
+
+{If API specs missing and stories touch endpoints:}
+⚠️  Recommended first: @api-architect EPIC-{id} → generates OpenAPI 3.1 contracts
+    (coding agents use these contracts as ground truth for endpoint shapes)
 
 How would you like to work?
 

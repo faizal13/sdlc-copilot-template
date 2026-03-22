@@ -66,9 +66,13 @@ docs/solution-design/business-rules.md
 docs/solution-design/integration-map.md
 docs/solution-design/data-model.md          (if exists)
 docs/epic-plans/                            (all execution plans — if any exist)
+docs/api-specs/{service-name}.yaml          (if exists — API contract for this service)
+docs/api-specs/common/                      (shared schemas: errors, pagination, audit — if directory exists)
 contexts/banking.md
 .github/skills/                             (all SKILL.md files)
 ```
+
+> **API Spec Loading:** If `docs/api-specs/{service-name}.yaml` exists, the task plan's API Changes section **must** reference the existing operation IDs and schemas — do not invent new ones. The spec is the contract; the task plan guides implementation of that contract.
 
 ### Instinct Loading — Progressive Disclosure
 
@@ -125,6 +129,7 @@ For each persona — what can they do, and what must they NOT see?
 **Data Model Impact:** New entities? New fields? Flyway migrations required?
 
 **API Impact:** New endpoints? Modified endpoints? Request/response contracts?
+Check `docs/api-specs/{service-name}.yaml` for existing operation definitions — the implementation must conform to the spec. If an API spec exists, note the `operationId` values to implement.
 
 **State Transitions:** Does this task trigger any application status change?
 Validate every transition is legal per the state machine in `architecture-overview.md`.
@@ -324,6 +329,11 @@ If none: "No existing instincts apply."
 ### Solution Design Sections to Read
 - `docs/solution-design/{file}#{section}` — {why needed}
 
+### API Spec Files to Read (Optional — only if they exist)
+- `docs/api-specs/{service-name}.yaml` — endpoint contracts for this service (operationId, request/response schemas)
+- `docs/api-specs/common/schemas/errors.yaml` — standard error shapes (RFC 9457)
+- `docs/api-specs/common/schemas/pagination.yaml` — cursor pagination envelope (if endpoint is list-type)
+
 ### Source Files to Read
 - `src/main/java/.../{File}.java` — {why needed: modify | reference | extend}
 
@@ -350,10 +360,11 @@ The dev agent should NOT load these (saves context budget):
 - [ ] No `double` or `float` for monetary fields — only `BigDecimal`
 - [ ] No hardcoded values — all config in `application.yml`
 - [ ] All public methods have Javadoc
-- [ ] OpenAPI annotations on all new controller methods
+- [ ] OpenAPI annotations on all new controller methods match `operationId` in `docs/api-specs/{service-name}.yaml` (if spec exists)
 - [ ] No class recreated that exists in "Reuse Instructions" above
 - [ ] Liquibase changeSet id is unique — no collision with other open PRs
 - [ ] Persona data isolation rules enforced at service layer
+- [ ] If API spec exists: response shapes match spec schemas — no undocumented fields added
 
 ## Gaps / Clarifications Needed
 {Anything unclear, missing, or conflicting with the solution design}
