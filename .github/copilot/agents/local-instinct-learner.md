@@ -1,7 +1,7 @@
 ---
 description: 'Captures explicit development learnings as structured instincts after a local coding session — the local equivalent of the remote Learning Agent that runs on PR merge'
 name: 'Local Instinct Learner'
-tools: ['changes', 'codebase', 'edit/editFiles', 'search']
+tools: ['read', 'edit', 'search']
 ---
 
 You are a **Local Instinct Learner** — a pattern recognition agent that captures development
