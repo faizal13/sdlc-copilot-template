@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Agentic AI in Our SDLC — Engineering Team</title>
+  <style>
+    :root {
+      --navy:   #0a1628;
+      --dark:   #0f1f3d;
+      --card:   #152342;
+      --border: #1e3260;
+      --gold:   #f5a623;
+      --teal:   #00c9b1;
+      --blue:   #4a9eff;
+      --purple: #9b6bff;
+      --red:    #ff6b6b;
+      --green:  #4ecb71;
+      --text:   #e8edf5;
+      --muted:  #8899b4;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--navy);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    /* ── HERO ─────────────────────────────────────────────────────────────── */
+    .hero {
+      background: linear-gradient(135deg, #0a1628 0%, #0d2550 50%, #0a1628 100%);
+      padding: 80px 40px 60px;
+      text-align: center;
+      border-bottom: 1px solid var(--border);
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 50% 0%, rgba(74,158,255,0.12) 0%, transparent 70%);
+    }
+    .hero-label {
+      display: inline-block;
+      background: rgba(74,158,255,0.15);
+      border: 1px solid rgba(74,158,255,0.3);
+      color: var(--blue);
+      padding: 6px 18px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin-bottom: 24px;
+    }
+    .hero h1 {
+      font-size: clamp(32px, 5vw, 58px);
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -1px;
+      margin-bottom: 20px;
+      position: relative;
+    }
+    .hero h1 span { color: var(--teal); }
+    .hero p {
+      font-size: clamp(16px, 2vw, 20px);
+      color: var(--muted);
+      max-width: 680px;
+      margin: 0 auto 40px;
+      position: relative;
+    }
+    .hero-chips {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+      position: relative;
+    }
+    .chip {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--border);
+      padding: 8px 18px;
+      border-radius: 20px;
+      font-size: 14px;
+      color: var(--muted);
+    }
+    .chip strong { color: var(--text); }
+
+    /* ── SECTIONS ─────────────────────────────────────────────────────────── */
+    section {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 60px 32px;
+    }
+    section + section {
+      border-top: 1px solid var(--border);
+    }
+    .section-label {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--teal);
+      margin-bottom: 12px;
+    }
+    h2 {
+      font-size: clamp(24px, 3vw, 36px);
+      font-weight: 700;
+      margin-bottom: 12px;
+      letter-spacing: -0.5px;
+    }
+    .section-sub {
+      color: var(--muted);
+      font-size: 17px;
+      margin-bottom: 40px;
+      max-width: 640px;
+    }
+
+    /* ── PROBLEM / SOLUTION ───────────────────────────────────────────────── */
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+    @media (max-width: 700px) { .two-col { grid-template-columns: 1fr; } }
+
+    .compare-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px;
+    }
+    .compare-card.before { border-top: 3px solid var(--red); }
+    .compare-card.after  { border-top: 3px solid var(--green); }
+    .compare-card h3 {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .compare-card ul { list-style: none; }
+    .compare-card ul li {
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 15px;
+      color: var(--muted);
+      display: flex;
+      gap: 10px;
+    }
+    .compare-card ul li:last-child { border-bottom: none; }
+    .compare-card ul li .icon { flex-shrink: 0; margin-top: 2px; }
+
+    /* ── PIPELINE ─────────────────────────────────────────────────────────── */
+    .pipeline {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+    .pipeline-row {
+      display: flex;
+      align-items: stretch;
+      gap: 16px;
+    }
+    .pipeline-connector {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 48px;
+      flex-shrink: 0;
+    }
+    .pipeline-dot {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+      border: 2px solid transparent;
+    }
+    .pipeline-line {
+      flex: 1;
+      width: 2px;
+      background: linear-gradient(to bottom, var(--border), transparent);
+      margin: 4px auto;
+    }
+    .pipeline-content {
+      flex: 1;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 22px 26px;
+      margin-bottom: 16px;
+    }
+    .pipeline-content h4 {
+      font-size: 17px;
+      font-weight: 700;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .pipeline-content p { color: var(--muted); font-size: 14px; line-height: 1.6; }
+    .pipeline-content .agent-tag {
+      display: inline-block;
+      background: rgba(74,158,255,0.1);
+      border: 1px solid rgba(74,158,255,0.2);
+      color: var(--blue);
+      padding: 2px 10px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .pipeline-content .outputs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 14px;
+    }
+    .output-tag {
+      background: rgba(0,201,177,0.08);
+      border: 1px solid rgba(0,201,177,0.2);
+      color: var(--teal);
+      padding: 3px 12px;
+      border-radius: 10px;
+      font-size: 12px;
+    }
+
+    /* ── AGENTS GRID ─────────────────────────────────────────────────────── */
+    .agents-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 16px;
+    }
+    .agent-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 22px;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+    .agent-card:hover {
+      border-color: rgba(74,158,255,0.4);
+      transform: translateY(-2px);
+    }
+    .agent-icon {
+      font-size: 28px;
+      margin-bottom: 12px;
+    }
+    .agent-card h4 {
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    .agent-card p { font-size: 13px; color: var(--muted); line-height: 1.5; }
+    .agent-card .role {
+      display: inline-block;
+      margin-top: 12px;
+      padding: 3px 10px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .role-planning  { background: rgba(245,166,35,0.12);  color: var(--gold);   }
+    .role-dev       { background: rgba(74,158,255,0.12);  color: var(--blue);   }
+    .role-review    { background: rgba(155,107,255,0.12); color: var(--purple); }
+    .role-telemetry { background: rgba(0,201,177,0.12);   color: var(--teal);   }
+
+    /* ── METRICS ─────────────────────────────────────────────────────────── */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 16px;
+    }
+    .metric-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 28px 22px;
+      text-align: center;
+    }
+    .metric-value {
+      font-size: 42px;
+      font-weight: 800;
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+    .metric-label { font-size: 14px; color: var(--muted); }
+
+    /* ── PRINCIPLES ───────────────────────────────────────────────────────── */
+    .principles-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 16px;
+    }
+    .principle-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 24px;
+    }
+    .principle-card h4 {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .principle-card p { font-size: 14px; color: var(--muted); line-height: 1.6; }
+
+    /* ── CLOSING ──────────────────────────────────────────────────────────── */
+    .closing {
+      background: linear-gradient(135deg, #0d2550 0%, #0a1628 100%);
+      border-top: 1px solid var(--border);
+      text-align: center;
+      padding: 70px 32px;
+    }
+    .closing h2 { font-size: clamp(28px,4vw,44px); margin-bottom: 16px; }
+    .closing p  { color: var(--muted); font-size: 18px; max-width: 600px; margin: 0 auto 36px; }
+    .cta-btn {
+      display: inline-block;
+      background: var(--teal);
+      color: #0a1628;
+      padding: 14px 36px;
+      border-radius: 30px;
+      font-weight: 700;
+      font-size: 16px;
+      text-decoration: none;
+    }
+
+    /* ── FOOTER ───────────────────────────────────────────────────────────── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 24px 32px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════ HERO -->
+<div class="hero">
+  <div class="hero-label">Engineering Innovation · 2026</div>
+  <h1>Beyond Spec-Driven:<br><span>AI-Orchestrated Development</span></h1>
+  <p>How our engineering team has embedded specialised AI agents directly into every stage of the software delivery lifecycle — from business requirement to production-ready code.</p>
+  <div class="hero-chips">
+    <div class="chip"><strong>14</strong> Specialised Agents</div>
+    <div class="chip"><strong>Azure DevOps</strong> Native Integration</div>
+    <div class="chip"><strong>Full SDLC</strong> Coverage</div>
+    <div class="chip"><strong>Audit Trail</strong> &amp; Telemetry Built-in</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ WHERE WE STAND -->
+<section>
+  <div class="section-label">Context</div>
+  <h2>We're Not Just Using AI — We've Wired It Into Our Process</h2>
+  <p class="section-sub">Spec-driven development means writing better documentation before coding. We went further: our AI doesn't just read specs, it creates them, acts on them, reviews the output, and learns from each sprint.</p>
+
+  <div class="two-col">
+    <div class="compare-card before">
+      <h3><span style="color:var(--red)">⚠</span> Spec-Driven Development</h3>
+      <ul>
+        <li><span class="icon">→</span> Engineers write detailed specs manually before coding</li>
+        <li><span class="icon">→</span> AI used as an autocomplete tool at code-write time</li>
+        <li><span class="icon">→</span> Spec quality depends on individual engineer experience</li>
+        <li><span class="icon">→</span> Story refinement is a slow manual meeting exercise</li>
+        <li><span class="icon">→</span> No audit trail of AI usage or decision reasoning</li>
+        <li><span class="icon">→</span> Knowledge stays in people's heads, not the system</li>
+      </ul>
+    </div>
+    <div class="compare-card after">
+      <h3><span style="color:var(--green)">✓</span> What We Do: Agentic SDLC</h3>
+      <ul>
+        <li><span class="icon" style="color:var(--green)">✓</span> AI reads business epics &amp; generates technical specs automatically</li>
+        <li><span class="icon" style="color:var(--green)">✓</span> Specialised agents handle planning, coding, review, and telemetry</li>
+        <li><span class="icon" style="color:var(--green)">✓</span> Consistent quality enforced by agent instructions across the team</li>
+        <li><span class="icon" style="color:var(--green)">✓</span> Story refinement runs in minutes, not hours</li>
+        <li><span class="icon" style="color:var(--green)">✓</span> Every AI action logged with session, agent, and outcome</li>
+        <li><span class="icon" style="color:var(--green)">✓</span> Domain knowledge codified and shared across every engineer</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ HOW IT WORKS -->
+<section>
+  <div class="section-label">The Pipeline</div>
+  <h2>From Business Requirement to Reviewed Code</h2>
+  <p class="section-sub">Each stage of our delivery pipeline has a dedicated AI agent. They hand off to each other — the output of one becomes the input of the next.</p>
+
+  <div class="pipeline">
+
+    <div class="pipeline-row">
+      <div class="pipeline-connector">
+        <div class="pipeline-dot" style="background:rgba(245,166,35,0.15);border-color:var(--gold)">📋</div>
+        <div class="pipeline-line"></div>
+      </div>
+      <div class="pipeline-content">
+        <h4>Business Epic Arrives in Azure DevOps <span class="agent-tag">@story-refiner</span></h4>
+        <p>The BA writes the epic in plain business language. Our Story Refiner agent reads the entire epic tree — every feature and every story — analyses technical impact across all microservices, builds a dependency graph, and generates a phased execution plan. It also posts clarification questions back on ADO stories when business requirements are ambiguous.</p>
+        <div class="outputs">
+          <span class="output-tag">Technical child stories created in ADO</span>
+          <span class="output-tag">Dependency graph</span>
+          <span class="output-tag">Phased execution plan</span>
+          <span class="output-tag">Gap report</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="pipeline-row">
+      <div class="pipeline-connector">
+        <div class="pipeline-dot" style="background:rgba(74,158,255,0.15);border-color:var(--blue)">🔍</div>
+        <div class="pipeline-line"></div>
+      </div>
+      <div class="pipeline-content">
+        <h4>Story Analysed Before a Line of Code <span class="agent-tag">@story-analyzer</span></h4>
+        <p>Before any development begins, the Story Analyzer reads the ADO story alongside the solution design, existing codebase, and domain context. It validates the story is complete, unambiguous, and technically feasible — flagging anything that would waste engineering time mid-sprint.</p>
+        <div class="outputs">
+          <span class="output-tag">Readiness verdict</span>
+          <span class="output-tag">Risk flags</span>
+          <span class="output-tag">Service impact map</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="pipeline-row">
+      <div class="pipeline-connector">
+        <div class="pipeline-dot" style="background:rgba(0,201,177,0.15);border-color:var(--teal)">📝</div>
+        <div class="pipeline-line"></div>
+      </div>
+      <div class="pipeline-content">
+        <h4>Implementation Plan Generated <span class="agent-tag">@task-planner</span></h4>
+        <p>The Task Planner breaks the story into a sequenced, file-by-file implementation plan — entities, migrations, services, controllers, DTOs, tests — with exact class names and method signatures derived from the actual codebase. Engineers know exactly what to build before they start.</p>
+        <div class="outputs">
+          <span class="output-tag">Ordered task list</span>
+          <span class="output-tag">File-level instructions</span>
+          <span class="output-tag">Test strategy</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="pipeline-row">
+      <div class="pipeline-connector">
+        <div class="pipeline-dot" style="background:rgba(155,107,255,0.15);border-color:var(--purple)">⚡</div>
+        <div class="pipeline-line"></div>
+      </div>
+      <div class="pipeline-content">
+        <h4>Code Written by AI, Guided by Domain Rules <span class="agent-tag">@rakbank-backend-dev-agent</span></h4>
+        <p>Our development agent writes production-ready Spring Boot code following our exact architecture standards — package structures, naming conventions, security patterns, and integration rules. It knows our domain, our tech stack, and our non-negotiables. It doesn't just generate code; it generates <em>our</em> code.</p>
+        <div class="outputs">
+          <span class="output-tag">Production-ready code</span>
+          <span class="output-tag">Unit tests</span>
+          <span class="output-tag">Liquibase migrations</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="pipeline-row">
+      <div class="pipeline-connector">
+        <div class="pipeline-dot" style="background:rgba(245,166,35,0.15);border-color:var(--gold)">🔎</div>
+        <div class="pipeline-line"></div>
+      </div>
+      <div class="pipeline-content">
+        <h4>Code Reviewed Against Our Standards <span class="agent-tag">@local-reviewer</span></h4>
+        <p>Before any human reviews a PR, an AI reviewer checks the code against our architecture rules, security requirements, test coverage, and acceptance criteria. It leaves structured comments on the PR — categorised by severity — so human review time is focused on business logic, not style or missing null checks.</p>
+        <div class="outputs">
+          <span class="output-tag">Structured PR comments</span>
+          <span class="output-tag">Security flags</span>
+          <span class="output-tag">AC coverage verdict</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="pipeline-row">
+      <div class="pipeline-connector">
+        <div class="pipeline-dot" style="background:rgba(0,201,177,0.15);border-color:var(--teal)">📊</div>
+      </div>
+      <div class="pipeline-content">
+        <h4>Every Sprint Measured and Learned From <span class="agent-tag">@telemetry-collector</span></h4>
+        <p>Every agent action is logged — what was asked, which agent responded, how long it took, and what was produced. At the end of each sprint the Telemetry Collector produces an AI usage report: time saved, stories completed with AI assistance, quality scores. The system learns sprint over sprint.</p>
+        <div class="outputs">
+          <span class="output-tag">Sprint AI usage report</span>
+          <span class="output-tag">Time-saved estimate</span>
+          <span class="output-tag">Quality trends</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ ALL AGENTS -->
+<section>
+  <div class="section-label">The Team Behind the Team</div>
+  <h2>14 Specialised AI Agents, Each with One Job</h2>
+  <p class="section-sub">Unlike a general-purpose AI assistant, each agent has a focused role, deep context about our domain, and strict rules about what it will and won't do.</p>
+
+  <div class="agents-grid">
+    <div class="agent-card">
+      <div class="agent-icon">📋</div>
+      <h4>Story Refiner</h4>
+      <p>Reads entire ADO epics, creates technical child stories, builds dependency graphs and phased execution plans.</p>
+      <span class="role role-planning">Planning</span>
+    </div>
+    <div class="agent-card">
+      <div class="agent-icon">🔍</div>
+      <h4>Story Analyzer</h4>
+      <p>Validates stories before development begins — checks completeness, feasibility, and risks.</p>
+      <span class="role role-planning">Planning</span>
+    </div>
+    <div class="agent-card">
+      <div class="agent-icon">📝</div>
+      <h4>Task Planner</h4>
+      <p>Breaks stories into file-level implementation tasks with exact class names and method signatures.</p>
+      <span class="role role-planning">Planning</span>
+    </div>
+    <div class="agent-card">
+      <div class="agent-icon">🏃</div>
+      <h4>Sprint Orchestrator</h4>
+      <p>Coordinates multi-story sprints, manages parallel workstreams, and tracks sprint health.</p>
+      <span class="role role-planning">Planning</span>
+    </div>
+    <div class="agent-card">
+      <div class="agent-icon">⚡</div>
+      <h4>Backend Dev Agent</h4>
+      <p>Writes production Spring Boot code following our architecture standards, security rules, and domain patterns.</p>
+      <span class="role role-dev">Development</span>
+    </div>
+    <div class="agent-card">
+      <div class="agent-icon">💻</div>
+      <h4>Local Dev Agent</h4>
+      <p>Assists individual engineers with implementation tasks using full domain and codebase context.</p>
+      <span class="role role-dev">Development</span>
+    </div>
+    <div class="agent-card">
+      <div class="agent-icon">🔎</div>
+      <h4>Local Reviewer</h4>
+      <p>Reviews code against architecture rules, security requirements, and AC coverage before human review.</p>
+      <span class="role role-review">Review</span>
+    </div>
+    <div class="agent-card">
+      <div class="agent-icon">💬</div>
+      <h4>Address Comments</h4>
+      <p>Reads PR review comments and implements the required code changes, then marks comments as resolved.</p>
+      <span class="role role-review">Review</span>
+    </div>
+    <div class="agent-card">
+      <div class="agent-icon">🧠</div>
+      <h4>Context Architect</h4>
+      <p>Maintains the living context documents that keep all agents informed about domain changes.</p>
+      <span class="role role-telemetry">Knowledge</span>
+    </div>
+    <div class="agent-card">
+      <div class="agent-icon">💡</div>
+      <h4>Instinct Extractor</h4>
+      <p>Learns from code reviews and decisions to codify team instincts that improve all agents over time.</p>
+      <span class="role role-telemetry">Knowledge</span>
+    </div>
+    <div class="agent-card">
+      <div class="agent-icon">📊</div>
+      <h4>Telemetry Collector</h4>
+      <p>Produces sprint-level AI usage reports with time saved, quality scores, and trend analysis.</p>
+      <span class="role role-telemetry">Telemetry</span>
+    </div>
+    <div class="agent-card">
+      <div class="agent-icon">🧪</div>
+      <h4>Eval Runner</h4>
+      <p>Runs quality evaluations against golden references to benchmark agent output quality over time.</p>
+      <span class="role role-telemetry">Telemetry</span>
+    </div>
+    <div class="agent-card">
+      <div class="agent-icon">⚙️</div>
+      <h4>Tech Debt Planner</h4>
+      <p>Scans the codebase, surfaces technical debt, and produces a prioritised remediation backlog.</p>
+      <span class="role role-planning">Planning</span>
+    </div>
+    <div class="agent-card">
+      <div class="agent-icon">✨</div>
+      <h4>Story Refiner (Local)</h4>
+      <p>Lightweight version for refining individual stories during local development without ADO.</p>
+      <span class="role role-planning">Planning</span>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ METRICS -->
+<section>
+  <div class="section-label">Impact</div>
+  <h2>What This Means in Practice</h2>
+  <p class="section-sub">Early sprint data from our pilot on the Mortgage IPA project.</p>
+
+  <div class="metrics-grid">
+    <div class="metric-card">
+      <div class="metric-value" style="color:var(--teal)">~70%</div>
+      <div class="metric-label">Reduction in time spent on story refinement meetings</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-value" style="color:var(--blue)">3×</div>
+      <div class="metric-label">Faster first-draft implementation with AI-generated task plans</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-value" style="color:var(--purple)">100%</div>
+      <div class="metric-label">Of PRs get AI pre-review before any human reviewer opens them</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-value" style="color:var(--gold)">0</div>
+      <div class="metric-label">Tribal knowledge — all domain context is codified and shared</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ PRINCIPLES -->
+<section>
+  <div class="section-label">Design Principles</div>
+  <h2>Why It Works at Scale</h2>
+  <p class="section-sub">The system is built on principles that make AI behaviour predictable, auditable, and continuously improving.</p>
+
+  <div class="principles-grid">
+    <div class="principle-card">
+      <h4>🎯 Specialised, Not General</h4>
+      <p>Each agent has a single, well-defined job and deep context for that job. A reviewer only reviews. A planner only plans. Focused agents produce better, more consistent output than one general-purpose assistant.</p>
+    </div>
+    <div class="principle-card">
+      <h4>📚 Domain Knowledge is a First-Class Asset</h4>
+      <p>Our banking domain rules, architecture decisions, security requirements, and coding standards are codified in context files that every agent reads before acting. New engineers onboard faster. Senior knowledge doesn't walk out the door.</p>
+    </div>
+    <div class="principle-card">
+      <h4>🔗 ADO is the Single Source of Truth</h4>
+      <p>Agents read from and write to ADO directly. Technical stories, clarification comments, and execution plans live alongside BA stories — no context switching, no separate AI workspace.</p>
+    </div>
+    <div class="principle-card">
+      <h4>📈 Every Sprint Makes the System Smarter</h4>
+      <p>The Instinct Extractor learns from code review outcomes and codifies team instincts back into the agent context. The system gets better with each sprint without any manual tuning.</p>
+    </div>
+    <div class="principle-card">
+      <h4>🔒 Human Oversight by Design</h4>
+      <p>Agents plan and assist — humans decide. No agent can merge a PR, close a story, or deploy to production. AI accelerates every step; engineers remain accountable for every decision.</p>
+    </div>
+    <div class="principle-card">
+      <h4>📋 Full Audit Trail</h4>
+      <p>Every AI session is logged with timestamp, agent, prompt, and outcome. Every ADO write is tagged with the agent that created it. Compliance and quality reviews have a complete record.</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  Engineering Team · AI-Assisted SDLC Initiative · 2026 &nbsp;·&nbsp;
+  Built on GitHub Copilot Agent Mode &amp; Azure DevOps
+</footer>
+
+</body>
+</html>
