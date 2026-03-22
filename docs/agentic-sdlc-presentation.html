@@ -356,7 +356,7 @@
   <h1>Beyond Spec-Driven:<br><span>AI-Orchestrated Development</span></h1>
   <p>How our engineering team has embedded specialised AI agents directly into every stage of the software delivery lifecycle — from business requirement to production-ready code.</p>
   <div class="hero-chips">
-    <div class="chip"><strong>14</strong> Specialised Agents</div>
+    <div class="chip"><strong>15</strong> Specialised Agents</div>
     <div class="chip"><strong>Azure DevOps</strong> Native Integration</div>
     <div class="chip"><strong>Full SDLC</strong> Coverage</div>
     <div class="chip"><strong>Audit Trail</strong> &amp; Telemetry Built-in</div>
@@ -416,6 +416,23 @@
           <span class="output-tag">Dependency graph</span>
           <span class="output-tag">Phased execution plan</span>
           <span class="output-tag">Gap report</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="pipeline-row">
+      <div class="pipeline-connector">
+        <div class="pipeline-dot" style="background:rgba(155,107,255,0.15);border-color:var(--purple)">📐</div>
+        <div class="pipeline-line"></div>
+      </div>
+      <div class="pipeline-content">
+        <h4>API Contract Designed Upfront <span class="agent-tag">@api-architect</span></h4>
+        <p>Before any engineer writes a single method, our API Architect agent reads the execution plan and solution design docs and produces industry-standard OpenAPI 3.1 specifications — as if a senior API architect had designed them. It enforces RFC 9457 error shapes, cursor pagination, read/write model separation, and strict schema contracts. The spec becomes the binding contract between frontend, backend, and QA.</p>
+        <div class="outputs">
+          <span class="output-tag">OpenAPI 3.1 per-service specs</span>
+          <span class="output-tag">Common error schemas (RFC 9457)</span>
+          <span class="output-tag">Pagination &amp; audit models</span>
+          <span class="output-tag">Contract handoff to dev agents</span>
         </div>
       </div>
     </div>
@@ -505,7 +522,7 @@
 <!-- ═══════════════════════════════════════════════════════ ALL AGENTS -->
 <section>
   <div class="section-label">The Team Behind the Team</div>
-  <h2>14 Specialised AI Agents, Each with One Job</h2>
+  <h2>15 Specialised AI Agents, Each with One Job</h2>
   <p class="section-sub">Unlike a general-purpose AI assistant, each agent has a focused role, deep context about our domain, and strict rules about what it will and won't do.</p>
 
   <div class="agents-grid">
@@ -519,6 +536,12 @@
       <div class="agent-icon">🔍</div>
       <h4>Story Analyzer</h4>
       <p>Validates stories before development begins — checks completeness, feasibility, and risks.</p>
+      <span class="role role-planning">Planning</span>
+    </div>
+    <div class="agent-card">
+      <div class="agent-icon">📐</div>
+      <h4>API Architect</h4>
+      <p>Generates industry-standard OpenAPI 3.1 specs from execution plans — RFC 9457 errors, strict schemas, cursor pagination. The binding contract dev agents must honour.</p>
       <span class="role role-planning">Planning</span>
     </div>
     <div class="agent-card">
@@ -600,7 +623,7 @@
 <section>
   <div class="section-label">Impact</div>
   <h2>What This Means in Practice</h2>
-  <p class="section-sub">Early sprint data from our pilot on the Mortgage IPA project.</p>
+  <p class="section-sub">Measured outcomes from our first sprints running the full agentic pipeline.</p>
 
   <div class="metrics-grid">
     <div class="metric-card">
@@ -652,6 +675,10 @@
     <div class="principle-card">
       <h4>📋 Full Audit Trail</h4>
       <p>Every AI session is logged with timestamp, agent, prompt, and outcome. Every ADO write is tagged with the agent that created it. Compliance and quality reviews have a complete record.</p>
+    </div>
+    <div class="principle-card">
+      <h4>📐 API-First by Design</h4>
+      <p>The API contract is defined before any code is written. Our API Architect agent produces OpenAPI 3.1 specs that dev agents, reviewers, and QA all reference. Frontend and backend can build in parallel against the same contract — no integration surprises at merge time.</p>
     </div>
   </div>
 </section>
