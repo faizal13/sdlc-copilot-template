@@ -1,6 +1,7 @@
 ---
 name: instinct-lookup
-description: 'Search and retrieve relevant development instincts/patterns by category (coding, testing, security, integration, domain) or keyword. Use when implementing features to check for established team patterns before writing code.'
+description: 'Search and retrieve relevant development instincts/patterns by category (coding, testing, security, integration, domain) or keyword. Use when implementing features, middleware integrations, or fixing bugs to check for established team patterns before writing code. Auto-activates before any implementation.'
+argument-hint: '<category or keyword — e.g. integration, testing, BigDecimal, middleware, error handling>'
 ---
 
 # Instinct Lookup

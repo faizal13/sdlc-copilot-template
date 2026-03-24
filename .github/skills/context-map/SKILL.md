@@ -1,6 +1,7 @@
 ---
 name: context-map
-description: 'Generate a map of all files relevant to a task before making changes'
+description: 'Generate a map of all files relevant to a task before making changes. Use before implementing any feature, bug fix, middleware integration, or refactor to identify affected Java classes, Spring components, repositories, migrations, tests, and downstream dependencies.'
+argument-hint: '<describe the task — e.g. add payment gateway middleware, fix loan application state machine>'
 ---
 
 # Context Map

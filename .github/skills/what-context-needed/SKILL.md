@@ -1,6 +1,7 @@
 ---
 name: what-context-needed
-description: 'Ask Copilot what files it needs to see before answering a question'
+description: 'Ask Copilot what Java/Spring Boot files it needs to see before answering a question or implementing a task. Use when unsure which files to share, or before starting a new feature to avoid missing context.'
+argument-hint: '<your question or task — e.g. why is the credit check failing, how to add a new middleware>'
 ---
 
 # What Context Do You Need?
