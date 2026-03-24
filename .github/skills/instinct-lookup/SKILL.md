@@ -1,5 +1,4 @@
 ---
-mode: 'ask'
 name: instinct-lookup
 description: 'Search and retrieve relevant development instincts/patterns by category (coding, testing, security, integration, domain) or keyword. Use when implementing features to check for established team patterns before writing code.'
 ---

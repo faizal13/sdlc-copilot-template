@@ -1,5 +1,4 @@
 ---
-mode: 'ask'
 name: what-context-needed
 description: 'Ask Copilot what files it needs to see before answering a question'
 ---
