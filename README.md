@@ -307,6 +307,9 @@ Generates comprehensive QA test cases from acceptance criteria, API specs, and b
 - `docs/test-cases/EPIC-001/{service}-api-contract-tests.md` — API contract validation (happy path, 400, 401, 404)
 - `docs/test-cases/EPIC-001/integration-scenarios.md` — cross-service end-to-end flows
 - `docs/test-cases/EPIC-001/business-rule-tests.md` — domain-specific rule validation
+- `docs/test-cases/EPIC-001/EPIC-001-test-cases.csv` — **ALL test cases in one CSV** — open in Excel, import into Zephyr/TestRail/qTest/Azure Test Plans
+
+The CSV includes QA execution columns (Actual Result, Status, Tested-By, Test-Date, Defect-ID) pre-created but empty — QA fills them during execution.
 
 > **Important:** Test cases are for QA review and execution after development completes. Development agents do NOT consume these — devs write their own unit/integration tests independently to maintain QA independence.
 

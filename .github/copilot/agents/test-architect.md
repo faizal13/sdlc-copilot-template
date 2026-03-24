@@ -279,7 +279,8 @@ docs/test-cases/EPIC-{id}/
 ├── {STORY-id}-test-cases.md               ← functional test cases per story (Step 3)
 ├── {service-name}-api-contract-tests.md   ← API contract tests per service (Step 4)
 ├── integration-scenarios.md               ← cross-service E2E scenarios (Step 5)
-└── business-rule-tests.md                 ← business rule edge cases (Step 6)
+├── business-rule-tests.md                 ← business rule edge cases (Step 6)
+└── EPIC-{id}-test-cases.csv               ← ALL test cases in one CSV for Excel / test management tools (Step 7b)
 ```
 
 ### README.md structure:
@@ -332,11 +333,70 @@ docs/test-cases/EPIC-{id}/
 - [ ] Priority assignments reflect business impact
 
 ## How to Use
-1. **QA Lead:** Review all test cases, check coverage, flag gaps
-2. **QA Engineer:** Execute test cases against deployed QA environment
-3. **BA/PO:** Validate that test cases match intended business behavior
-4. **After Execution:** Log results against each TC-{id} in your test management tool
+1. **QA Lead:** Review markdown files in GitHub for PR review; open CSV in Excel for execution tracking
+2. **QA Engineer:** Use `EPIC-{id}-test-cases.csv` in Excel — fill in Actual Result, Status, Tester columns
+3. **BA/PO:** Validate test cases match intended business behavior (markdown or Excel)
+4. **Import:** CSV can be imported into test management tools (Zephyr, TestRail, qTest, Azure Test Plans)
 ````
+
+---
+
+## Step 7b — Generate CSV for Excel / Test Management Tools
+
+After writing all markdown files, generate a **single CSV file** containing ALL test cases from Steps 3–6 combined. This file is the QA execution tracker — open it in Excel and start testing.
+
+**File:** `docs/test-cases/EPIC-{id}/EPIC-{id}-test-cases.csv`
+
+**CSV columns (first row is header):**
+
+```csv
+TC-ID,Category,Story-ID,Story-Title,AC-Reference,Test-Case-Name,Type,Priority,Preconditions,Test-Steps,Expected-Result,Test-Data-Requirements,API-Endpoint,HTTP-Method,Expected-Status-Code,Business-Rule,Actual-Result,Status,Tested-By,Test-Date,Defect-ID,Notes
+```
+
+**Column definitions:**
+
+| Column | Filled by Agent | Description |
+|--------|----------------|-------------|
+| TC-ID | ✅ | Unique ID: `TC-{STORY-id}-001`, `TC-API-{service}-001`, `TC-INT-001`, `TC-BR-001-A` |
+| Category | ✅ | `Functional`, `API-Contract`, `Integration`, `Business-Rule` |
+| Story-ID | ✅ | ADO Story ID (e.g., `STORY-1234`) or `N/A` for cross-cutting tests |
+| Story-Title | ✅ | BA story title |
+| AC-Reference | ✅ | Which AC this tests (e.g., `AC-1`, `AC-3`) or `N/A` |
+| Test-Case-Name | ✅ | Descriptive name from the markdown test case |
+| Type | ✅ | `Positive`, `Negative`, `Boundary`, `Authorization`, `Idempotency`, `E2E`, `Rule-Satisfied`, `Rule-Violated` |
+| Priority | ✅ | `High`, `Medium`, `Low` |
+| Preconditions | ✅ | What must be true before test runs (semicolon-separated if multiple) |
+| Test-Steps | ✅ | Numbered steps (use `1. step; 2. step; 3. step` format — semicolons as separators) |
+| Expected-Result | ✅ | Specific expected outcome |
+| Test-Data-Requirements | ✅ | What data/personas are needed |
+| API-Endpoint | ✅ | `GET /api/v1/applications/{id}` or empty for non-API tests |
+| HTTP-Method | ✅ | `GET`, `POST`, `PUT`, `PATCH`, `DELETE` or empty |
+| Expected-Status-Code | ✅ | `200`, `201`, `400`, `401`, `404` or empty |
+| Business-Rule | ✅ | Rule reference (e.g., `LTV cap 80% UAE nationals`) or empty |
+| Actual-Result | ❌ | *QA fills this during execution* |
+| Status | ❌ | *QA fills: `Pass`, `Fail`, `Blocked`, `Skipped`, `Not-Run`* |
+| Tested-By | ❌ | *QA fills: tester name* |
+| Test-Date | ❌ | *QA fills: execution date* |
+| Defect-ID | ❌ | *QA fills: bug ticket ID if failed* |
+| Notes | ❌ | *QA fills: any observations* |
+
+**CSV rules:**
+- Wrap any field containing commas, newlines, or quotes in double quotes
+- Escape internal double quotes by doubling them (`""`)
+- Use semicolons (`;`) as step separators within a single cell (not newlines)
+- Every row from Steps 3–6 gets one row in the CSV — no test case is omitted
+- Sort by: Category → Story-ID → TC-ID
+
+**Example rows:**
+
+```csv
+TC-ID,Category,Story-ID,Story-Title,AC-Reference,Test-Case-Name,Type,Priority,Preconditions,Test-Steps,Expected-Result,Test-Data-Requirements,API-Endpoint,HTTP-Method,Expected-Status-Code,Business-Rule,Actual-Result,Status,Tested-By,Test-Date,Defect-ID,Notes
+TC-1234-001,Functional,STORY-1234,Submit Mortgage Application,AC-1,Valid application submission — salaried UAE national,Positive,High,Customer exists with valid Emirates ID; Property valuation complete,1. Login as salaried UAE national; 2. Navigate to new application; 3. Fill all mandatory fields; 4. Submit application,Application created with status SUBMITTED; confirmation number returned; notification triggered,Salaried UAE national persona with salary 25K,POST /api/v1/applications,POST,201,,,,,,
+TC-1234-002,Functional,STORY-1234,Submit Mortgage Application,AC-1,Missing mandatory fields — validation error,Negative,High,Customer exists with valid Emirates ID,1. Login as customer; 2. Navigate to new application; 3. Leave salary field empty; 4. Submit,HTTP 400 with RFC 9457 error detailing missing field,Any customer persona,POST /api/v1/applications,POST,400,,,,,,
+TC-API-app-001,API-Contract,STORY-1234,Submit Mortgage Application,N/A,Happy path — createApplication,Positive,High,Valid auth token; test customer exists,1. Send POST /api/v1/applications with valid body,HTTP 201; Location header present; body matches ApplicationResponse schema,Valid request body per spec,,POST,201,,,,,,
+TC-BR-001-A,Business-Rule,STORY-1234,Submit Mortgage Application,AC-3,LTV ratio within limit for UAE national,Rule-Satisfied,High,Property value 1000000 AED; requested loan 800000 AED,1. Submit application with LTV = 80%,Application proceeds to credit check,"UAE national; property 1M; loan 800K",,,,LTV cap 80% UAE nationals,,,,,
+TC-BR-001-C,Business-Rule,STORY-1234,Submit Mortgage Application,AC-3,LTV ratio exactly at boundary,Boundary,High,Property value 1000000 AED; requested loan 800001 AED,1. Submit application with LTV = 80.0001%,Application rejected with reason LTV_EXCEEDED,"UAE national; property 1M; loan 800001",,,,LTV cap 80% UAE nationals,,,,,
+```
 
 ---
 
