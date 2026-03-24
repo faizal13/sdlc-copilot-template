@@ -60,15 +60,11 @@ Use the description as-is. Infer the likely target service and scope from the so
 Read these files before producing the plan:
 
 ```
-docs/solution-design/architecture-overview.md
-docs/solution-design/user-personas.md
-docs/solution-design/business-rules.md
-docs/solution-design/integration-map.md
-docs/solution-design/data-model.md          (if exists)
+docs/solution-design/                       ← read ALL files in this directory
+contexts/                                   ← read ALL domain context files
 docs/epic-plans/                            (all execution plans — if any exist)
 docs/api-specs/{service-name}.yaml          (if exists — API contract for this service)
 docs/api-specs/common/                      (shared schemas: errors, pagination, audit — if directory exists)
-contexts/banking.md
 .github/skills/                             (all SKILL.md files)
 ```
 
@@ -372,7 +368,7 @@ If none: "None."
 
 ## Coding Agent Instructions
 You are `@local-rakbank-dev-agent` reading this task plan.
-- Read `contexts/banking.md` before writing any code
+- Read all files under `contexts/` before writing any code
 - Read `docs/solution-design/` for all architectural decisions
 - Apply every instinct listed in "Applicable Instincts" above
 - Build in order: Flyway migration → entity → repository → service → controller → tests
@@ -434,6 +430,39 @@ After the output summary, append an entry to `docs/agent-telemetry/current-sprin
 | Error | {description or "none"} |
 | Notes | Service: {name}, Gaps: {count}, Instincts applied: {count}, Phase: {N or "none"} |
 ```
+
+---
+
+## Step 7.6 — Append Project Changelog Entry
+
+Append an entry to `docs/project-changelog.md`. **Never edit previous entries — append only.**
+
+Read the existing changelog first. If a previous entry exists for the same Story/Epic with a `Task Planning` header, this is a **re-plan** — include a **Delta** section.
+
+````markdown
+---
+
+## [{YYYY-MM-DD}] Task Planning — {STORY-id or EPIC-id}: {title}
+**Agent:** @task-planner | **Service:** {service-name}
+
+### Plan Summary
+- **Tasks:** {count} implementation tasks
+- **Estimated Effort:** {total story points or hours}
+- **Dependencies:** {list external dependencies or "None"}
+- **API Spec Referenced:** {yes — operationIds used | no — spec not found}
+
+### Key Decisions
+{Summarize architectural/implementation choices: build order, migration strategy, etc.}
+
+### Gaps Identified
+{List any open questions or missing context, or "None."}
+
+### Delta (only if re-plan)
+- **Tasks Added:** {list new tasks}
+- **Tasks Modified:** {list changed tasks and what changed}
+- **Tasks Removed:** {list or "None"}
+- **Reason:** {what triggered the re-plan — requirement change, API spec update, etc.}
+````
 
 ---
 

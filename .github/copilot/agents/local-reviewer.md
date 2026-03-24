@@ -38,12 +38,11 @@ Read in order:
 3.  .github/instructions/coding.instructions.md
 4.  .github/instructions/security.instructions.md
 5.  .github/instructions/testing.instructions.md
-6.  docs/solution-design/user-personas.md            ← persona isolation rules
-7.  docs/solution-design/architecture-overview.md    ← state machine rules
-8.  docs/solution-design/business-rules.md           ← business rules
-9.  taskPlan/*.md                                    ← find the task plan for this work
-10. docs/api-specs/{service-name}.yaml               ← API contract (load if exists; derive service name from task plan)
-11. docs/api-specs/common/schemas/errors.yaml        ← expected error shape (RFC 9457)
+6.  docs/solution-design/                             ← read ALL files (personas, architecture, business rules, etc.)
+7.  contexts/                                        ← read ALL domain context files
+8.  taskPlan/*.md                                    ← find the task plan for this work
+9.  docs/api-specs/{service-name}.yaml               ← API contract (load if exists; derive service name from task plan)
+10. docs/api-specs/common/schemas/errors.yaml        ← expected error shape (RFC 9457)
 ```
 
 > **API spec note:** If `docs/api-specs/{service-name}.yaml` is found, Step 2 includes an "API Contract Compliance" check.
@@ -297,6 +296,29 @@ After the review report, append an entry to `docs/agent-telemetry/current-sprint
 | Error | none |
 | Notes | Verdict: {READY/BLOCKED}, Critical: {count}, Warnings: {count}, AC coverage: {covered}/{total} |
 ```
+
+---
+
+## Step 4.6 — Append Project Changelog Entry (only when drift detected)
+
+**Only append a changelog entry if you detected API contract drift, requirement misalignment, or significant deviations during the review.** Do not append for clean reviews.
+
+Read `docs/project-changelog.md` and append:
+
+````markdown
+---
+
+## [{YYYY-MM-DD}] Review Finding — {STORY-id}: {title}
+**Agent:** @local-reviewer | **Verdict:** {READY TO COMMIT / BLOCKED}
+
+### Drift Detected
+- **Type:** {API Spec Drift | Requirement Misalignment | Design Deviation}
+- **Details:** {describe what was found — field name mismatch, missing endpoint, AC not met, etc.}
+- **Files Affected:** {list files with drift}
+
+### Resolution
+- {Describe how it was fixed, or "Pending developer action"}
+````
 
 ---
 

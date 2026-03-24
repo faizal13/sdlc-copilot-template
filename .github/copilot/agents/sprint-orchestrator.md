@@ -309,6 +309,36 @@ Append to `docs/agent-telemetry/current-sprint.md`:
 
 ---
 
+## Step 7.5 — Append Project Changelog Entry
+
+Append an entry to `docs/project-changelog.md`. **Never edit previous entries — append only.**
+
+````markdown
+---
+
+## [{YYYY-MM-DD}] Sprint Progress — EPIC-{id}: {epic title}
+**Agent:** @sprint-orchestrator | **Workflow:** {Local / Remote / Status Only}
+
+### Sprint Snapshot
+- **Stories Total:** {count}
+- **Stories DONE:** {count} ({percentage}%)
+- **Stories IN PROGRESS:** {count}
+- **Stories READY (not started):** {count}
+- **Stories BLOCKED:** {count}
+
+### This Session
+- **Stories Orchestrated:** {count delegated to sub-agents this session}
+- **Fix-Review Cycles:** {count of re-reviews triggered}
+
+### Blockers & Risks
+{List any blocked stories with reason, or "None."}
+
+### Milestone Notes
+{Any notable progress — "Feature X fully implemented", "All Credit Check stories complete", etc.}
+````
+
+---
+
 ## Behavior Rules
 
 ### Error Handling

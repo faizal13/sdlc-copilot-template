@@ -458,6 +458,27 @@ After the output summary, append an entry to `docs/agent-telemetry/current-sprin
 
 ---
 
+## Step 6.6 — Append Project Changelog Entry
+
+Append an entry to `docs/project-changelog.md`. **Never edit previous entries — append only.**
+
+````markdown
+---
+
+## [{YYYY-MM-DD}] Story Analysis → GitHub Issue — {STORY-id}: {title}
+**Agent:** @story-analyzer | **Service:** {service-name}
+
+### Issue Created
+- **GitHub Issue:** #{issue-number} — {issue title}
+- **Acceptance Criteria:** {count} ACs mapped from ADO story
+- **Clarifications Needed:** {count} ({list or "None"})
+
+### Observations
+{Notable findings: gaps between BA story and solution design, cross-service dependencies, etc.}
+````
+
+---
+
 ## Guidelines
 
 - Never assume missing information — flag it explicitly

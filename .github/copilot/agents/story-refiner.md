@@ -119,12 +119,8 @@ For each item, extract:
 Read these files to understand the current technical landscape:
 
 ```
-docs/solution-design/architecture-overview.md
-docs/solution-design/user-personas.md
-docs/solution-design/business-rules.md
-docs/solution-design/integration-map.md
-docs/solution-design/data-model.md          (if exists)
-contexts/banking.md
+docs/solution-design/                       ← read ALL files in this directory
+contexts/                                   ← read ALL domain context files
 docs/project-changelog.md                   (if exists — for requirement drift)
 docs/epic-plans/                            (if exists — for previously refined epics)
 ```
@@ -313,9 +309,7 @@ If no gaps: "No gaps detected."
 
 If the epic introduces new entities, APIs, state transitions, or integrations that are NOT yet in the solution design docs, append them:
 
-- `docs/solution-design/data-model.md` — new entities discovered
-- `docs/solution-design/integration-map.md` — new inter-service calls
-- `docs/solution-design/architecture-overview.md` — new state machine transitions
+- Relevant files under `docs/solution-design/` — new entities, inter-service calls, state machine transitions
 
 Mark each addition with:
 ```markdown
@@ -468,6 +462,44 @@ After the output summary, append an entry to `docs/agent-telemetry/current-sprin
 | Error | {description or "none"} |
 | Notes | {features}, {BA stories}, {tasks created}, {gaps} gaps, {phases} phases |
 ```
+
+---
+
+## Step 8.6 — Append Project Changelog Entry
+
+Append an entry to `docs/project-changelog.md`. If the file does not exist, create it with the header from Step 0. **Never edit previous entries — append only.**
+
+Read the existing changelog first. If a previous entry exists for the same EPIC-{id}, this is a **re-run** — your entry MUST include a **Delta** section showing what changed since the last entry for this epic.
+
+````markdown
+---
+
+## [{YYYY-MM-DD}] Story Refinement — EPIC-{id}: {epic title}
+**Agent:** @story-refiner | **Checkpoint:** {checkpoint filename}
+
+### Scope Captured
+- **Features:** {count} ({comma-separated feature names})
+- **BA Stories:** {count}
+- **Tasks Created:** {count} across {count} stories
+
+### Story-to-Service Mapping
+| BA Story | Service | Tasks Created |
+|----------|---------|---------------|
+| {STORY-id}: {title} | {service} | {TASK-id}, ... |
+
+### Gaps & Questions
+{List any gaps flagged in the gap report, or "None detected."}
+
+### Observations
+{Any notable findings: missing ACs, ambiguous stories, new integrations discovered, etc.}
+
+### Delta (only if re-run)
+- **Stories Added:** {list new story IDs or "N/A — first run"}
+- **Stories Modified:** {list modified story IDs and what changed}
+- **Stories Removed:** {list or "None"}
+- **Tasks Added:** {count new tasks} | **Tasks Unchanged:** {count}
+- **Impact:** {describe downstream impact — api-specs need update? task plans stale?}
+````
 
 ---
 

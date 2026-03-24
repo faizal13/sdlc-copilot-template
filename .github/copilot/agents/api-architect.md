@@ -45,16 +45,13 @@ Read these files in order — stop and warn if a required file is missing:
 **Required:**
 ```
 docs/epic-plans/EPIC-{id}-execution-plan.md      ← from @story-refiner
-docs/solution-design/architecture-overview.md
-docs/solution-design/integration-map.md
+docs/solution-design/                            ← read ALL files in this directory
 ```
 
 **If they exist:**
 ```
-docs/solution-design/data-model.md
-docs/solution-design/state-machine.md
-docs/api-specs/common/                            ← shared schemas from previous runs
-contexts/banking.md                               ← domain context
+contexts/                                        ← read ALL domain context files
+docs/api-specs/common/                           ← shared schemas from previous runs
 ```
 
 **From codebase — scan for existing patterns:**
@@ -538,6 +535,39 @@ After the output summary, append an entry to `docs/agent-telemetry/current-sprin
 | Error | {description or "none"} |
 | Notes | {services}, {contract handoffs specced}, {gaps} |
 ```
+
+---
+
+## Step — Append Project Changelog Entry
+
+Append an entry to `docs/project-changelog.md`. **Never edit previous entries — append only.**
+
+Read the existing changelog first. If a previous entry exists for the same EPIC-{id} with an `API Design` header, this is a **revision** — your entry MUST include a **Delta** section showing what changed.
+
+````markdown
+---
+
+## [{YYYY-MM-DD}] API Design — EPIC-{id}: {epic title}
+**Agent:** @api-architect | **Run:** {first | revision}
+
+### Specs Generated
+| Service | Endpoints | File |
+|---------|-----------|------|
+| {service-name} | {count} | docs/api-specs/{service-name}.yaml |
+
+### Design Decisions
+{Key architectural choices: pagination strategy, error format, auth scheme, model separation, etc.}
+
+### Shared Schemas
+{List schemas added/updated in docs/api-specs/common/ — errors, pagination, audit, etc.}
+
+### Delta (only if revision)
+- **Endpoints Added:** {list new operationIds}
+- **Endpoints Modified:** {list changed operationIds and what changed}
+- **Endpoints Removed:** {list or "None"}
+- **Breaking Changes:** {describe any breaking changes, or "None"}
+- **Trigger:** {what caused the revision — new stories, BA feedback, spec drift, etc.}
+````
 
 ---
 

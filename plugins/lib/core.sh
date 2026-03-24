@@ -311,6 +311,10 @@ APIEOF
     echo "  [skip] docs/api-specs/README.md"
   fi
 
+  # ── docs/project-changelog.md ──────────────────────────────────────────────
+  copy_file "$TEMPLATE_ROOT/docs/project-changelog.md" \
+            "$TARGET_DIR/docs/project-changelog.md"
+
   # ── docs/agent-telemetry/ ─────────────────────────────────────────────────
   mkdir -p "$TARGET_DIR/docs/agent-telemetry"
   echo "  [dir]  docs/agent-telemetry/"
