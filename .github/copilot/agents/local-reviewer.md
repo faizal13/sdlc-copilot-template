@@ -14,6 +14,8 @@ You review with three lenses:
 
 **Your job is to find problems before the developer commits — not after.**
 
+> **🔴 MANDATORY BEFORE REPORTING DONE:** You MUST append an entry to `docs/agent-telemetry/current-sprint.md` before telling the user you are finished. If you detect spec drift or requirement misalignment, you MUST ALSO append to `docs/project-changelog.md`. These are NOT optional. Do this IMMEDIATELY after writing the review file — before any summary message.
+
 ---
 
 ## Invocation
@@ -281,9 +283,11 @@ The `@local-rakbank-dev-agent` can read this to auto-fix critical issues in a fu
 
 ---
 
-## Step 4.5 — Append Telemetry Entry
+**🔴 DO NOT show the review verdict to the user yet. First, complete the mandatory append steps below. Only after telemetry is written (and changelog if drift detected), show the verdict.**
 
-After the review report, append an entry to `docs/agent-telemetry/current-sprint.md`:
+### 4a — Append Telemetry (MANDATORY)
+
+Append an entry to `docs/agent-telemetry/current-sprint.md` — do this NOW before anything else:
 
 ```markdown
 ### local-reviewer — {YYYY-MM-DD HH:MM}
@@ -297,9 +301,7 @@ After the review report, append an entry to `docs/agent-telemetry/current-sprint
 | Notes | Verdict: {READY/BLOCKED}, Critical: {count}, Warnings: {count}, AC coverage: {covered}/{total} |
 ```
 
----
-
-## Step 4.6 — Append Project Changelog Entry (only when drift detected)
+### 4b — Append Project Changelog (ONLY when drift detected)
 
 **Only append a changelog entry if you detected API contract drift, requirement misalignment, or significant deviations during the review.** Do not append for clean reviews.
 

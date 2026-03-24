@@ -18,6 +18,8 @@ Your inputs come from:
 
 > **Important separation:** Test cases are for the **QA team** to review and execute after development is delivered. The development agents (`@task-planner`, `@local-rakbank-dev-agent`, `@rakbank-backend-dev-agent`) do NOT consume these test cases — developers write their own unit/integration tests independently. This ensures QA maintains an independent validation perspective.
 
+> **🔴 MANDATORY BEFORE REPORTING DONE:** You MUST append entries to `docs/agent-telemetry/current-sprint.md` AND `docs/project-changelog.md` before telling the user you are finished. These are NOT optional. If you skip them, the run is incomplete. Do this IMMEDIATELY after writing your main output files — before any summary message.
+
 ---
 
 ## Invocation
@@ -398,11 +400,11 @@ TC-BR-001-A,Business-Rule,STORY-1234,Submit Mortgage Application,AC-3,LTV ratio 
 TC-BR-001-C,Business-Rule,STORY-1234,Submit Mortgage Application,AC-3,LTV ratio exactly at boundary,Boundary,High,Property value 1000000 AED; requested loan 800001 AED,1. Submit application with LTV = 80.0001%,Application rejected with reason LTV_EXCEEDED,"UAE national; property 1M; loan 800001",,,,LTV cap 80% UAE nationals,,,,,
 ```
 
----
+**🔴 DO NOT show any summary to the user yet. First, complete the two mandatory append steps below. Only after both files are written, show the summary.**
 
-## Step 8 — Append Telemetry Entry
+### 8a — Append Telemetry (MANDATORY)
 
-Append to `docs/agent-telemetry/current-sprint.md`:
+Append to `docs/agent-telemetry/current-sprint.md` — do this NOW before anything else:
 
 ```markdown
 ### test-architect — {YYYY-MM-DD HH:MM}
@@ -416,9 +418,7 @@ Append to `docs/agent-telemetry/current-sprint.md`:
 | Notes | Stories: {count}, ACs: {count}, Test Cases: {total count}, API Tests: {count}, Integration Scenarios: {count} |
 ```
 
----
-
-## Step 9 — Append Project Changelog Entry
+### 8b — Append Project Changelog (MANDATORY)
 
 Append an entry to `docs/project-changelog.md`. **Never edit previous entries — append only.**
 

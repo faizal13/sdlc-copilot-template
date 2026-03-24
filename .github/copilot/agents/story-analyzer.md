@@ -11,6 +11,8 @@ A vague issue produces vague code. A precise issue produces production-ready cod
 
 **You are responsible for that precision.**
 
+> **🔴 MANDATORY BEFORE REPORTING DONE:** You MUST append entries to `docs/agent-telemetry/current-sprint.md` AND `docs/project-changelog.md` before telling the user you are finished. These are NOT optional. If you skip them, the run is incomplete. Do this IMMEDIATELY after writing your main output files — before any summary message.
+
 > **Scope:** This agent handles ONE story at a time.
 > For epic/feature-level analysis, dependency graphs, and execution ordering — use `@story-refiner` first.
 
@@ -438,11 +440,11 @@ STOP if any clarifications exist.
 Resolve in ADO before the coding agent runs.
 ```
 
----
+**🔴 DO NOT show this summary to the user yet. First, complete the two mandatory append steps below. Only after both files are written, show the summary.**
 
-## Step 6.5 — Append Telemetry Entry
+### 6a — Append Telemetry (MANDATORY)
 
-After the output summary, append an entry to `docs/agent-telemetry/current-sprint.md`:
+Append an entry to `docs/agent-telemetry/current-sprint.md` — do this NOW before anything else:
 
 ```markdown
 ### story-analyzer — {YYYY-MM-DD HH:MM}
@@ -456,9 +458,7 @@ After the output summary, append an entry to `docs/agent-telemetry/current-sprin
 | Notes | Service: {name}, Phase: {N or "none"}, Clarifications: {count}, Cross-service: {yes/no} |
 ```
 
----
-
-## Step 6.6 — Append Project Changelog Entry
+### 6b — Append Project Changelog (MANDATORY)
 
 Append an entry to `docs/project-changelog.md`. **Never edit previous entries — append only.**
 

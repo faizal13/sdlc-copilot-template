@@ -19,6 +19,8 @@ BAs write epics, features, and stories in business language. They don't know abo
 
 **Run me ONCE per epic — during sprint refinement, before any coding begins.**
 
+> **🔴 MANDATORY BEFORE REPORTING DONE:** You MUST append entries to `docs/agent-telemetry/current-sprint.md` AND `docs/project-changelog.md` before telling the user you are finished. These are NOT optional. If you skip them, the run is incomplete. Do this IMMEDIATELY after writing your main output files — before any summary message.
+
 ---
 
 ## Invocation
@@ -445,11 +447,11 @@ Next steps:
    REMOTE: @story-analyzer STORY-{id}
 ```
 
----
+**🔴 DO NOT show this summary to the user yet. First, complete the two mandatory append steps below. Only after both files are written, show the summary.**
 
-## Step 8.5 — Append Telemetry Entry
+### 8a — Append Telemetry (MANDATORY)
 
-After the output summary, append an entry to `docs/agent-telemetry/current-sprint.md`:
+Append an entry to `docs/agent-telemetry/current-sprint.md` — do this NOW before anything else:
 
 ```markdown
 ### story-refiner — {YYYY-MM-DD HH:MM}
@@ -463,9 +465,7 @@ After the output summary, append an entry to `docs/agent-telemetry/current-sprin
 | Notes | {features}, {BA stories}, {tasks created}, {gaps} gaps, {phases} phases |
 ```
 
----
-
-## Step 8.6 — Append Project Changelog Entry
+### 8b — Append Project Changelog (MANDATORY)
 
 Append an entry to `docs/project-changelog.md`. If the file does not exist, create it with the header from Step 0. **Never edit previous entries — append only.**
 

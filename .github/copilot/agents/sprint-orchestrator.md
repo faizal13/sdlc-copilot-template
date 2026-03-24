@@ -14,6 +14,8 @@ Unlike other agents that do one job, YOU orchestrate the full workflow:
 
 **You are the only agent the developer needs to talk to during a sprint.**
 
+> **🔴 MANDATORY BEFORE REPORTING DONE:** You MUST append entries to `docs/agent-telemetry/current-sprint.md` AND `docs/project-changelog.md` before telling the user you are finished. These are NOT optional. If you skip them, the run is incomplete. Do this IMMEDIATELY after writing the sprint status file — before any summary message.
+
 ---
 
 ## Invocation
@@ -289,11 +291,11 @@ All {N} stories implemented and merged.
 - `@local-instinct-learner` — capture patterns learned during this epic
 ```
 
----
+**🔴 DO NOT show any summary to the user yet. First, complete the two mandatory append steps below. Only after both files are written, show the summary.**
 
-## Step 7 — Append Telemetry
+### 7a — Append Telemetry (MANDATORY)
 
-Append to `docs/agent-telemetry/current-sprint.md`:
+Append to `docs/agent-telemetry/current-sprint.md` — do this NOW before anything else:
 
 ```markdown
 ### sprint-orchestrator — {YYYY-MM-DD HH:MM}
@@ -311,9 +313,7 @@ Append to `docs/agent-telemetry/current-sprint.md`:
 | Outcome | success |
 ```
 
----
-
-## Step 7.5 — Append Project Changelog Entry
+### 7b — Append Project Changelog (MANDATORY)
 
 Append an entry to `docs/project-changelog.md`. **Never edit previous entries — append only.**
 

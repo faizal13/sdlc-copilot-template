@@ -10,6 +10,8 @@ Your job is to read the execution plan (from `@story-refiner`), the story analys
 
 **Run me AFTER `@story-refiner` completes and BEFORE coding begins — this is contract-first development.**
 
+> **🔴 MANDATORY BEFORE REPORTING DONE:** You MUST append entries to `docs/agent-telemetry/current-sprint.md` AND `docs/project-changelog.md` before telling the user you are finished. These are NOT optional. If you skip them, the run is incomplete. Do this IMMEDIATELY after writing your main output files — before any summary message.
+
 ---
 
 ## Invocation
@@ -516,11 +518,11 @@ Next steps:
    npx @openapitools/openapi-generator-cli validate -i docs/api-specs/{service}/openapi.yaml
 ```
 
----
+**🔴 DO NOT show this summary to the user yet. First, complete the two mandatory append steps below. Only after both files are written, show the summary.**
 
-## Step 7.5 — Append Telemetry Entry
+### 7a — Append Telemetry (MANDATORY)
 
-After the output summary, append an entry to `docs/agent-telemetry/current-sprint.md`:
+Append an entry to `docs/agent-telemetry/current-sprint.md` — do this NOW before anything else:
 
 ```markdown
 ### api-architect — {YYYY-MM-DD HH:MM}
@@ -536,9 +538,7 @@ After the output summary, append an entry to `docs/agent-telemetry/current-sprin
 | Notes | {services}, {contract handoffs specced}, {gaps} |
 ```
 
----
-
-## Step — Append Project Changelog Entry
+### 7b — Append Project Changelog (MANDATORY)
 
 Append an entry to `docs/project-changelog.md`. **Never edit previous entries — append only.**
 

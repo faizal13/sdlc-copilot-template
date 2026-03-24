@@ -12,6 +12,8 @@ it must be unambiguous and complete.
 
 **A vague task plan → vague code. A precise task plan → production-ready code.**
 
+> **🔴 MANDATORY BEFORE REPORTING DONE:** You MUST append entries to `docs/agent-telemetry/current-sprint.md` AND `docs/project-changelog.md` before telling the user you are finished. These are NOT optional. If you skip them, the run is incomplete. Do this IMMEDIATELY after writing your main output files — before any summary message.
+
 ---
 
 ## Input — Two modes
@@ -413,11 +415,11 @@ Next step:
 If there are gaps in the plan, stop here.
 Resolve them (update ADO story / clarify requirements) before running the coding agent.
 
----
+**🔴 DO NOT show this summary to the user yet. First, complete the two mandatory append steps below. Only after both files are written, show the summary.**
 
-## Step 7.5 — Append Telemetry Entry
+### 7a — Append Telemetry (MANDATORY)
 
-After the output summary, append an entry to `docs/agent-telemetry/current-sprint.md`:
+Append an entry to `docs/agent-telemetry/current-sprint.md` — do this NOW before anything else:
 
 ```markdown
 ### task-planner — {YYYY-MM-DD HH:MM}
@@ -431,9 +433,7 @@ After the output summary, append an entry to `docs/agent-telemetry/current-sprin
 | Notes | Service: {name}, Gaps: {count}, Instincts applied: {count}, Phase: {N or "none"} |
 ```
 
----
-
-## Step 7.6 — Append Project Changelog Entry
+### 7b — Append Project Changelog (MANDATORY)
 
 Append an entry to `docs/project-changelog.md`. **Never edit previous entries — append only.**
 
