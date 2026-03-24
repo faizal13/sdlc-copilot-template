@@ -17,9 +17,10 @@ You think before you code. You catch design flaws before they become bugs. You w
 Read these files and directories from the repository. They are your guardrails.
 
 ```
-contexts/                          → Domain terminology, business rules, data sensitivity classifications
-docs/solution-design/              → Architecture decisions, personas, integration contracts, state machines
-copilot-instructions.md            → Java coding standards (DO NOT duplicate — follow it as-is)
+contexts/                                    → Domain terminology, business rules, data sensitivity classifications
+docs/solution-design/                        → Architecture decisions, personas, integration contracts, state machines
+copilot-instructions.md                      → Java coding standards (DO NOT duplicate — follow it as-is)
+.github/instructions/*.instructions.md       → All instruction files (coding, security, testing, middleware)
 ```
 
 **API Spec (contract — load after Phase 0, before Phase 2):**
@@ -33,6 +34,12 @@ docs/api-specs/common/schemas/           → Shared error shapes (RFC 9457), pag
 > - Use the exact request/response schema field names — do not rename, add, or remove fields
 > - Error responses must use the RFC 9457 shape from `docs/api-specs/common/schemas/errors.yaml`
 > - If the issue's spec contradicts the YAML file, follow the YAML — flag the discrepancy in a comment
+
+> **🔴 Middleware / External API Integration:** If the GitHub Issue involves calling any middleware system, SOAP/XML service, or external REST API — you MUST follow the layered pattern in `.github/instructions/middleware.instructions.md` exactly. Check the Integration Notes in the issue for which variant applies:
+> - **SOAP/XML**: use `AbstractMiddleware` + `MiddlewareBaseService` + Thymeleaf XML templates + JAXB
+> - **REST/JSON**: use `RestConnector` + `ApiCallDetails` + Jackson
+>
+> Do NOT create a custom HTTP client. Do NOT call `RestTemplate` directly. The `ApiCallDetails` builder is mandatory for every outbound call. Find an existing `Middleware*ServiceImpl.java` in the codebase and follow its exact structure.
 
 The **GitHub Issue body** is your primary specification. The files above constrain how you implement it.
 
