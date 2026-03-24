@@ -9,7 +9,7 @@
 
 | Component | What it does |
 |-----------|-------------|
-| **15 Agents** | `@story-refiner`, `@api-architect`, `@sprint-orchestrator`, `@task-planner`, `@local-rakbank-dev-agent`, `@local-reviewer`, `@local-instinct-learner`, `@story-analyzer`, `@rakbank-backend-dev-agent`, `@address-comments`, `@instinct-extractor`, `@eval-runner`, `@telemetry-collector`, `@tech-debt-planner`, `@context-architect` |
+| **16 Agents** | `@story-refiner`, `@api-architect`, `@test-architect`, `@sprint-orchestrator`, `@task-planner`, `@local-rakbank-dev-agent`, `@local-reviewer`, `@local-instinct-learner`, `@story-analyzer`, `@rakbank-backend-dev-agent`, `@address-comments`, `@instinct-extractor`, `@eval-runner`, `@telemetry-collector`, `@tech-debt-planner`, `@context-architect` |
 | **4 Skills** | Auto-activated in Copilot Chat: context-map, what-context-needed, refactor-plan, instinct-lookup |
 | **6 Instructions** | Auto-applied to every Copilot interaction: coding, security, testing, review, cross-service, mcp-tools |
 | **Node.js Hooks** | Session logger (start/stop/prompt tracking) + git post-commit AI usage tracker — Windows & macOS compatible |
@@ -34,9 +34,14 @@ ADO Epic
             docs/api-specs/common/               (RFC 9457 errors, pagination, audit headers)
   The spec is the contract — all coding agents follow it exactly
 
+@test-architect EPIC-001                         ← NEW — run in parallel with development
+  Reads ACs from story-refiner + API specs from api-architect + business rules
+  Produces: docs/test-cases/EPIC-001/            (functional, API contract, integration, business rule tests)
+  QA reviews test cases while development proceeds independently
+
 @sprint-orchestrator EPIC-001
   Reads the execution plan + checks ADO story status
-  Checks: are API specs ready? (prompts @api-architect if missing)
+  Checks: are API specs ready? are test cases ready? (prompts if missing)
   Produces: sprintPlan/EPIC-001-sprint-status.md
   (which stories are READY, which are BLOCKED, parallel commands)
   Delegates: @task-planner → @local-rakbank-dev-agent → @local-reviewer (local workflow)
@@ -114,7 +119,7 @@ The installer will prompt you:
 ```
 
 **Which mode to choose:**
-- **Local** — You write code in VS Code with Copilot agents. All 15 agents work locally. Start here.
+- **Local** — You write code in VS Code with Copilot agents. All 16 agents work locally. Start here.
 - **Hybrid** — Same as local + GitHub Actions pipeline for automated coding/review/ADO-sync. Add this later when ready.
 
 **Which target to choose:**
@@ -249,7 +254,7 @@ Ensure these VS Code settings are active (auto-set by installer if `.vscode/sett
 
 ### Step 5 — Verify agents are available
 
-Open Copilot Chat → type `@` → you should see all 15 agents in the dropdown:
+Open Copilot Chat → type `@` → you should see all 16 agents in the dropdown:
 
 ```
 @address-comments
@@ -257,6 +262,7 @@ Open Copilot Chat → type `@` → you should see all 15 agents in the dropdown:
 @context-architect
 @eval-runner
 @instinct-extractor
+@test-architect
 @local-instinct-learner
 @local-rakbank-dev-agent
 @local-reviewer
@@ -291,6 +297,18 @@ Reads the execution plan contract handoffs and solution design docs, produces in
 - `docs/api-specs/common/` — shared schemas reused across services
 
 All coding agents (`@task-planner`, `@local-rakbank-dev-agent`, `@rakbank-backend-dev-agent`) and `@local-reviewer` will automatically load and follow these specs as the contract.
+
+```
+@test-architect EPIC-001
+```
+→ **Run after `@story-refiner` and `@api-architect` — in parallel with development, NOT after it.**
+Generates comprehensive QA test cases from acceptance criteria, API specs, and business rules:
+- `docs/test-cases/EPIC-001/{STORY-id}-test-cases.md` — functional test cases per story (positive, negative, boundary)
+- `docs/test-cases/EPIC-001/{service}-api-contract-tests.md` — API contract validation (happy path, 400, 401, 404)
+- `docs/test-cases/EPIC-001/integration-scenarios.md` — cross-service end-to-end flows
+- `docs/test-cases/EPIC-001/business-rule-tests.md` — domain-specific rule validation
+
+> **Important:** Test cases are for QA review and execution after development completes. Development agents do NOT consume these — devs write their own unit/integration tests independently to maintain QA independence.
 
 ```
 @sprint-orchestrator EPIC-001
@@ -416,9 +434,10 @@ To update a specific agent: delete the file from `.github/agents/` and re-run.
 
 ```
 .github/
-├── agents/                    ← 15 agents as *.agent.md (VS Code reads here)
+├── agents/                    ← 16 agents as *.agent.md (VS Code reads here)
 │   ├── story-refiner.agent.md
-│   ├── api-architect.agent.md          ← NEW: OpenAPI 3.1 spec generator
+│   ├── api-architect.agent.md
+│   ├── test-architect.agent.md         ← QA test case generator
 │   ├── sprint-orchestrator.agent.md
 │   ├── task-planner.agent.md
 │   ├── local-rakbank-dev-agent.agent.md
@@ -455,6 +474,8 @@ docs/
 │   │   └── responses/         ← standard 4xx/5xx response refs
 │   └── {service-name}.yaml    ← per-service spec
 ├── epic-plans/                ← @story-refiner execution plans
+├── test-cases/                ← @test-architect QA test cases (per epic)
+│   └── EPIC-{id}/            ← functional, API contract, integration, business rule tests
 ├── reviews/                   ← @local-reviewer structured review reports
 ├── agent-telemetry/           ← Live agent telemetry log
 ├── ai-usage/                  ← Per-story AI usage audit trail

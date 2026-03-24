@@ -103,6 +103,10 @@ If all phases are complete, write the completion file (see Step 6b) and stop.
 ⚠️  Recommended first: @api-architect EPIC-{id} → generates OpenAPI 3.1 contracts
     (coding agents use these contracts as ground truth for endpoint shapes)
 
+{If test cases missing in docs/test-cases/EPIC-{id}/:}
+⚠️  Recommended: @test-architect EPIC-{id} → generates QA test cases
+    (QA can review test cases while development proceeds in parallel)
+
 How would you like to work?
 
 1️⃣  **Local workflow** — I'll delegate to @task-planner → @local-rakbank-dev-agent → @local-reviewer

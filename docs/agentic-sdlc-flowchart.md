@@ -11,6 +11,7 @@ Feed this to GitHub Copilot agent at the start of any session to make it aware o
 |-------|-------|------|---------|
 | @story-refiner | Claude 4 Opus | Reads entire epic → dependency graph → execution plan → technical child stories | Manual: once per epic |
 | @api-architect | Claude 4 Opus | Execution plan + solution design → OpenAPI 3.1 specs per service | Manual: after @story-refiner, before coding |
+| @test-architect | Claude 4 Opus | ACs + API specs + business rules → QA test cases (functional, contract, integration, business rule) | Manual: after @api-architect, parallel with dev |
 | @sprint-orchestrator | Claude 4 Opus | Reads execution plan → detects local/remote workflow → delegates to sub-agents → tracks progress | Manual: start of sprint |
 | @story-analyzer | Claude 4 Opus | Reads ADO story + API spec → creates precise GitHub Issue | Manual: developer invokes |
 | @task-planner | Claude 4 Opus | Reads ADO/task + API spec → creates local task plan | Manual: developer invokes |
@@ -43,7 +44,10 @@ flowchart TD
     B2 --> B3([YOU: @api-architect EPIC-100<br/>generates OpenAPI 3.1 specs])
     B3 --> B4([API contracts ready<br/>docs/api-specs/ — used by all coding agents])
 
-    B4 --> C([DevOps: Release branch cut])
+    B4 --> B5([YOU: @test-architect EPIC-100<br/>generates QA test cases])
+    B5 --> B6([QA test cases ready<br/>docs/test-cases/EPIC-100/ — QA reviews while dev proceeds])
+
+    B6 --> C([DevOps: Release branch cut])
     C --> D([YOU: @sprint-orchestrator EPIC-100<br/>orchestrates full sprint])
 
     D -->|Hands-on, VS Code| E([LOCAL WORKFLOW])
@@ -584,6 +588,9 @@ Both workflows converge at the **Human Gate** — your engineering judgment is a
 | Review report not referenceable by other agents | @local-reviewer writes docs/reviews/{branch}-review.md with machine-parseable JSON block | @local-reviewer, @sprint-orchestrator |
 | Hooks not working on Windows | Node.js scripts (not bash+jq) — Node is always available in VS Code | .github/hooks/session-logger/ |
 | Hooks format wrong | PascalCase event names, `command` key, `timeout` key in .github/hooks/*.json | .github/hooks/session-logger.json |
+| QA test cases not independent of dev | @test-architect generates test cases; dev agents do NOT consume them — QA maintains independent validation | @test-architect |
+| Test cases miss edge cases | Every AC gets positive + negative TC; every threshold gets boundary TC; every endpoint gets 400/401/404 | @test-architect |
+| Requirement drift not visible to QA | @test-architect re-runs produce Delta sections showing added/modified/removed TCs | @test-architect, project-changelog |
 
 ---
 
@@ -602,9 +609,10 @@ Three guards prevent any infinite loop:
 
 ```
 .github/
-├── agents/                              ← 15 agents as *.agent.md (correct VS Code path)
-│   ├── story-refiner.agent.md           Epic → execution plan + technical child stories
-│   ├── api-architect.agent.md           Execution plan → OpenAPI 3.1 specs  ← NEW
+├── agents/                              ← 16 agents as *.agent.md (correct VS Code path)
+│   ├── story-refiner.agent.md           Epic → execution plan + technical tasks
+│   ├── api-architect.agent.md           Execution plan → OpenAPI 3.1 specs
+│   ├── test-architect.agent.md          ACs + API specs → QA test cases
 │   ├── sprint-orchestrator.agent.md     Orchestrates sprint + delegates to sub-agents
 │   ├── story-analyzer.agent.md          ADO story + API spec → GitHub Issue (remote)
 │   ├── task-planner.agent.md            ADO/task + API spec → local task plan
@@ -662,7 +670,9 @@ docs/
 │   │   └── responses/                   Standard 4xx/5xx response refs
 │   └── {service-name}.yaml              Per-service OpenAPI 3.1 spec
 ├── epic-plans/                          Execution plans from @story-refiner
-├── reviews/                             @local-reviewer structured reports  ← NEW
+├── test-cases/                          QA test cases from @test-architect
+│   └── EPIC-{id}/                      Functional, API contract, integration, business rule tests
+├── reviews/                             @local-reviewer structured reports
 │   └── {branch-name}-review.md         Machine-parseable JSON + human-readable
 ├── agent-telemetry/                     Per-agent operational metrics
 │   ├── README.md
