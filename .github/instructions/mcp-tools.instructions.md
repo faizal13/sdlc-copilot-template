@@ -6,7 +6,7 @@ applyTo: '**'
 
 ### Available MCP Servers
 
-#### Azure DevOps MCP (`azure-devops`)
+#### Azure DevOps MCP (`microsoft/azure-devops-mcp`)
 Use for reading/writing ADO work items.
 
 **Available operations:**

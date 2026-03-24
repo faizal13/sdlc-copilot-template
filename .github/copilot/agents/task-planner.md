@@ -68,9 +68,12 @@ docs/epic-plans/                            (all execution plans — if any exis
 docs/api-specs/{service-name}.yaml          (if exists — API contract for this service)
 docs/api-specs/common/                      (shared schemas: errors, pagination, audit — if directory exists)
 .github/skills/                             (all SKILL.md files)
+.github/instructions/                       ← read ALL instruction files
 ```
 
 > **API Spec Loading:** If `docs/api-specs/{service-name}.yaml` exists, the task plan's API Changes section **must** reference the existing operation IDs and schemas — do not invent new ones. The spec is the contract; the task plan guides implementation of that contract.
+
+> **Middleware / External API Detection:** If the story involves calling a middleware system, SOAP/XML service, or external REST API (e.g. InfoBip, credit bureau, core banking), read `.github/instructions/middleware.instructions.md` and flag this in the task plan. The Context Manifest MUST include `middleware.instructions.md` so the dev agent loads the correct layered pattern. Specify in the Integration Notes section which variant applies — SOAP/XML (Thymeleaf + JAXB) or REST/JSON (RestConnector + Jackson).
 
 ### Instinct Loading — Progressive Disclosure
 
@@ -331,6 +334,12 @@ If none: "No existing instincts apply."
 - `docs/api-specs/{service-name}.yaml` — endpoint contracts for this service (operationId, request/response schemas)
 - `docs/api-specs/common/schemas/errors.yaml` — standard error shapes (RFC 9457)
 - `docs/api-specs/common/schemas/pagination.yaml` — cursor pagination envelope (if endpoint is list-type)
+
+### Instruction Files to Read (include only what is relevant)
+- `.github/instructions/coding.instructions.md` — always
+- `.github/instructions/security.instructions.md` — always
+- `.github/instructions/testing.instructions.md` — always
+- `.github/instructions/middleware.instructions.md` — **include if this story involves calling any middleware, SOAP/XML service, or external REST API**; specify variant: `SOAP/XML` or `REST/JSON`
 
 ### Source Files to Read
 - `src/main/java/.../{File}.java` — {why needed: modify | reference | extend}

@@ -27,6 +27,23 @@ Please refer to the repository for the latest version, contribution guidelines, 
 ## Purpose
 These instructions guide the generation of Java code with a focus on best practices, including exception handling, input validation, and comprehensive unit testing.
 
+## Specialised Instruction Files
+
+Additional instruction files in `.github/instructions/` are auto-applied by VS Code Copilot based on file patterns. Be aware of these — they take precedence for their scope:
+
+| File | Applied to | Purpose |
+|------|-----------|---------|
+| `coding.instructions.md` | `src/main/java/**/*.java` | Java coding standards |
+| `security.instructions.md` | `src/main/java/**/*.java` | Security rules |
+| `testing.instructions.md` | `src/test/**/*.java` | Test standards |
+| `review.instructions.md` | All files | Pre-commit review rules |
+| `cross-service.instructions.md` | All files | Cross-service rules |
+| `middleware.instructions.md` | `middleware/**`, `connector/**`, `service/**` | **Middleware/external API pattern (SOAP + REST)** |
+
+> **Middleware rule:** When writing any class that calls an external system (middleware, SOAP/XML, REST API), follow `.github/instructions/middleware.instructions.md` strictly. Use `ApiCallDetails` + `RestConnector` (REST) or `AbstractMiddleware` + `MiddlewareBaseService` (SOAP). Never call `RestTemplate` directly.
+
+---
+
 ## Custom Directives
 - Always conform to the coding styles and patterns defined in this project's established guidelines when generating code.
 - Use @terminal when answering questions about Git commands, build processes, or deployment procedures.

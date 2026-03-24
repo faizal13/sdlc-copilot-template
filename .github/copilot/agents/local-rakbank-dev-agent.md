@@ -63,18 +63,25 @@ Read these files and directories from the workspace. They are your guardrails.
 3. docs/solution-design/                        ← Architecture decisions, personas, integration contracts, state machines
 4. copilot-instructions.md                      ← Java coding standards (DO NOT duplicate — follow it as-is)
 5. .github/copilot-instructions.md              ← Additional coding standards (if exists)
-6. .github/instructions/*.instructions.md       ← All instruction files (coding, security, testing)
+6. .github/instructions/*.instructions.md       ← All instruction files (coding, security, testing, middleware)
 7. .copilot/instincts/*.json                    ← ALL instincts — apply every applicable one
 8. .github/skills/                              ← ALL promoted skills
 ```
 
 The **task plan file** is your primary specification. The files above constrain how you implement it.
 
+> **🔴 Middleware / External API Integration:** If the task plan's Context Manifest includes `.github/instructions/middleware.instructions.md` OR the task involves calling any middleware system, SOAP/XML service, or external REST API — you MUST follow the layered pattern in `middleware.instructions.md` exactly. Check the variant specified in the task plan's Integration Notes:
+> - **SOAP/XML**: use `AbstractMiddleware` + `MiddlewareBaseService` + Thymeleaf XML templates + JAXB
+> - **REST/JSON**: use `RestConnector` + `ApiCallDetails` + Jackson
+>
+> Do NOT invent a custom HTTP client. Do NOT call `RestTemplate` directly. The `ApiCallDetails` builder is mandatory for every outbound call.
+
 Then scan the existing codebase in the target service for:
 - Existing entity patterns to follow
 - Existing service patterns (how other services handle similar logic)
 - Existing test patterns (naming, mocking conventions)
 - Existing exception types you should reuse
+- **Existing middleware implementations** — find another `Middleware*ServiceImpl.java` and follow its exact structure
 
 Do not invent patterns. Find the existing ones and follow them.
 
