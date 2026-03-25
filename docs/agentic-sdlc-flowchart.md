@@ -9,6 +9,7 @@ Feed this to GitHub Copilot agent at the start of any session to make it aware o
 
 | Agent | Model | Role | Trigger |
 |-------|-------|------|---------|
+| @solution-architect | Claude 4 Opus | Reads discovery/ inputs → produces full solution design (HLD + LLD + security + infra + data + frontend) | Manual: once per project or major feature |
 | @story-refiner | Claude 4 Opus | Reads entire epic → dependency graph → execution plan → technical child stories | Manual: once per epic |
 | @api-architect | Claude 4 Opus | Execution plan + solution design → OpenAPI 3.1 specs per service | Manual: after @story-refiner, before coding |
 | @test-architect | Claude 4 Opus | ACs + API specs + business rules → QA test cases (functional, contract, integration, business rule) | Manual: after @api-architect, parallel with dev |
@@ -34,6 +35,12 @@ Feed this to GitHub Copilot agent at the start of any session to make it aware o
 
 ```mermaid
 flowchart TD
+    Z([Business Requirements + Discovery Documents]) --> Z1
+
+    Z1([YOU: @solution-architect<br/>reads discovery/ → produces docs/solution-design/])
+    Z1 --> Z2([Solution design ready<br/>12 files: architecture, security, infra, data, integrations...])
+    Z2 --> A
+
     A([PO + BA: Epic with Features and Stories in ADO]) --> B
 
     B([YOU: @story-refiner EPIC-100<br/>once per epic during refinement])
@@ -61,6 +68,9 @@ flowchart TD
     K -->|Yes| D
     K -->|No, next phase| D
 
+    style Z fill:#2C3E50,color:#fff
+    style Z1 fill:#8E44AD,color:#fff
+    style Z2 fill:#8E44AD,color:#fff
     style A fill:#4A90D9,color:#fff
     style B fill:#8E44AD,color:#fff
     style B1 fill:#8E44AD,color:#fff
@@ -591,6 +601,9 @@ Both workflows converge at the **Human Gate** — your engineering judgment is a
 | QA test cases not independent of dev | @test-architect generates test cases; dev agents do NOT consume them — QA maintains independent validation | @test-architect |
 | Test cases miss edge cases | Every AC gets positive + negative TC; every threshold gets boundary TC; every endpoint gets 400/401/404 | @test-architect |
 | Requirement drift not visible to QA | @test-architect re-runs produce Delta sections showing added/modified/removed TCs | @test-architect, project-changelog |
+| Solution design created manually / inconsistently | @solution-architect generates all 12 docs from discovery inputs with consistent structure | @solution-architect |
+| Solution design out of date after requirement changes | @solution-architect --update mode compares new inputs, produces delta with change log | @solution-architect |
+| Downstream agents reference non-existent design docs | @solution-architect produces handoff files for @story-refiner and @api-architect | HANDOFF-*.md files |
 
 ---
 
@@ -609,7 +622,8 @@ Three guards prevent any infinite loop:
 
 ```
 .github/
-├── agents/                              ← 16 agents as *.agent.md (correct VS Code path)
+├── agents/                              ← 17 agents as *.agent.md (correct VS Code path)
+│   ├── solution-architect.agent.md      Discovery → full solution design (HLD + LLD)
 │   ├── story-refiner.agent.md           Epic → execution plan + technical tasks
 │   ├── api-architect.agent.md           Execution plan → OpenAPI 3.1 specs
 │   ├── test-architect.agent.md          ACs + API specs → QA test cases
@@ -632,7 +646,8 @@ Three guards prevent any infinite loop:
 │   ├── security.instructions.md         Security rules
 │   ├── testing.instructions.md          Testing standards
 │   ├── cross-service.instructions.md    Multi-repo rules
-│   └── mcp-tools.instructions.md        MCP tool usage rules
+│   ├── mcp-tools.instructions.md        MCP tool usage rules
+│   └── middleware.instructions.md       SOAP/XML + REST/JSON integration patterns
 ├── skills/
 │   ├── context-map/SKILL.md             Context dependency mapping
 │   ├── what-context-needed/SKILL.md     Smart context loading
@@ -658,6 +673,7 @@ Three guards prevent any infinite loop:
 .checkpoints/                            Agent checkpoint files (gitignored JSON)
     └── README.md                        Full lifecycle documentation (committed)
 
+discovery/                               Business requirements, epics, regulatory docs (@solution-architect input)
 contexts/                                YOUR domain knowledge
 docs/
 ├── solution-design/                     Architecture, personas, business rules

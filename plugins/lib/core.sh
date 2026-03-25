@@ -5,7 +5,7 @@
 #  Sourced by install.sh. Never run directly.
 #
 #  Installs:
-#    - All 14 agents                → .github/agents/*.agent.md
+#    - All agents                    → .github/agents/*.agent.md
 #    - Auto-instructions (6)        → .github/instructions/*.instructions.md
 #    - Instruction examples (4)     → .github/instructions/examples/
 #    - VS Code skills (4)           → .github/skills/{name}/SKILL.md
@@ -165,6 +165,12 @@ INDEXEOF
   fi
   copy_file "$TEMPLATE_ROOT/.checkpoints/README.md" \
             "$TARGET_DIR/.checkpoints/README.md"
+
+  # ── discovery/ ────────────────────────────────────────────────────────────
+  mkdir -p "$TARGET_DIR/discovery"
+  echo "  [dir]  discovery/"
+  copy_file "$TEMPLATE_ROOT/templates/discovery/README.md" \
+            "$TARGET_DIR/discovery/README.md"
 
   # ── contexts/ ─────────────────────────────────────────────────────────────
   mkdir -p "$TARGET_DIR/contexts"

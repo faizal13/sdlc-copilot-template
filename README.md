@@ -9,9 +9,9 @@
 
 | Component | What it does |
 |-----------|-------------|
-| **16 Agents** | `@story-refiner`, `@api-architect`, `@test-architect`, `@sprint-orchestrator`, `@task-planner`, `@local-rakbank-dev-agent`, `@local-reviewer`, `@local-instinct-learner`, `@story-analyzer`, `@rakbank-backend-dev-agent`, `@address-comments`, `@instinct-extractor`, `@eval-runner`, `@telemetry-collector`, `@tech-debt-planner`, `@context-architect` |
+| **17 Agents** | `@solution-architect`, `@story-refiner`, `@api-architect`, `@test-architect`, `@sprint-orchestrator`, `@task-planner`, `@local-rakbank-dev-agent`, `@local-reviewer`, `@local-instinct-learner`, `@story-analyzer`, `@rakbank-backend-dev-agent`, `@address-comments`, `@instinct-extractor`, `@eval-runner`, `@telemetry-collector`, `@tech-debt-planner`, `@context-architect` |
 | **4 Skills** | Auto-activated in Copilot Chat: context-map, what-context-needed, refactor-plan, instinct-lookup |
-| **6 Instructions** | Auto-applied to every Copilot interaction: coding, security, testing, review, cross-service, mcp-tools |
+| **7 Instructions** | Auto-applied to every Copilot interaction: coding, security, testing, review, cross-service, mcp-tools, middleware |
 | **Node.js Hooks** | Session logger (start/stop/prompt tracking) + git post-commit AI usage tracker — Windows & macOS compatible |
 | **Checkpoint System** | Phase-level recovery for long-running agents — never restart from scratch; completed runs preserved as learning history |
 | **Runtime dirs** | `taskPlan/`, `sprintPlan/`, `docs/epic-plans/`, `docs/api-specs/`, `docs/reviews/`, `docs/agent-telemetry/`, `evals/`, `.copilot/instincts/`, `.checkpoints/` |
@@ -21,6 +21,14 @@
 ## The Development Flow
 
 ```
+Business Requirements + Discovery Documents
+  └── @solution-architect
+        Reads everything in discovery/ folder (BRDs, epics, regulatory docs, wireframes)
+        Produces: docs/solution-design/ (12 files — architecture, security, data model,
+        infrastructure, integration map, personas, business rules, frontend, NFRs,
+        observability, CI/CD, API strategy)
+        Also produces: HANDOFF-story-refiner.md + HANDOFF-api-architect.md
+
 ADO Epic
   └── @story-refiner EPIC-001
         Reads all features + stories from ADO (batch mode — no truncation)
@@ -128,14 +136,15 @@ The installer will prompt you:
 
 What gets installed for **Local + Single folder**:
 ```
-.github/agents/              ← 15 agents as *.agent.md
-.github/instructions/        ← 6 auto-instructions + examples
+.github/agents/              ← 17 agents as *.agent.md
+.github/instructions/        ← 7 auto-instructions + examples
 .github/skills/              ← 4 skills
 .github/hooks/               ← session-logger.json + Node.js scripts + git post-commit
 .copilot/instincts/          ← INDEX.json (grows as agents learn)
 .checkpoints/                ← agent recovery checkpoints + README
+discovery/                   ← README (place business requirements, epics, regulatory docs here)
 contexts/                    ← README (you add domain knowledge here)
-docs/solution-design/        ← README (you add architecture here)
+docs/solution-design/        ← README (@solution-architect creates these, or you add manually)
 docs/api-specs/              ← @api-architect writes OpenAPI 3.1 specs here
 docs/api-specs/common/       ← shared schemas: RFC 9457 errors, pagination, audit headers
 docs/epic-plans/             ← @story-refiner writes here
@@ -155,7 +164,13 @@ sprintPlan/                  ← @sprint-orchestrator writes status here
 
 ### Step 2 — Fill in your domain knowledge
 
-The installer creates two empty directories with README guidance. Fill these in before running any agents — they are the foundation everything else reads from.
+The installer creates directories with README guidance. You have two options:
+
+**Option A — Use `@solution-architect` (recommended):** Place your business documents in `discovery/` and run `@solution-architect`. It produces all `docs/solution-design/` files automatically.
+
+**Option B — Manual:** Create the files yourself following the guidance below.
+
+Either way, `contexts/` (domain knowledge) is always manually curated.
 
 #### 2a. `contexts/` — Domain knowledge
 
@@ -254,7 +269,7 @@ Ensure these VS Code settings are active (auto-set by installer if `.vscode/sett
 
 ### Step 5 — Verify agents are available
 
-Open Copilot Chat → type `@` → you should see all 16 agents in the dropdown:
+Open Copilot Chat → type `@` → you should see all 17 agents in the dropdown:
 
 ```
 @address-comments
@@ -262,17 +277,18 @@ Open Copilot Chat → type `@` → you should see all 16 agents in the dropdown:
 @context-architect
 @eval-runner
 @instinct-extractor
-@test-architect
 @local-instinct-learner
 @local-rakbank-dev-agent
 @local-reviewer
 @rakbank-backend-dev-agent
+@solution-architect
 @sprint-orchestrator
 @story-analyzer
 @story-refiner
 @task-planner
 @tech-debt-planner
 @telemetry-collector
+@test-architect
 ```
 
 If agents don't appear: make sure files are in `.github/agents/*.agent.md` (not `.github/copilot/agents/`).
@@ -280,6 +296,31 @@ If agents don't appear: make sure files are in `.github/agents/*.agent.md` (not 
 ---
 
 ## Using the Agents
+
+### Solution Design (Run Once Per Project / Major Feature)
+
+```
+@solution-architect
+```
+→ **The genesis agent.** Reads everything in `discovery/` (business requirements, epic descriptions, regulatory docs, wireframes, meeting notes) and produces the complete `docs/solution-design/` directory from scratch — 12 files covering architecture overview, infrastructure (AWS EKS, RDS, MSK, Redis, S3), security (Keycloak, PCI-DSS, CBUAE compliance), data model, integration map, personas, business rules, frontend architecture, NFRs, observability, CI/CD, and API strategy.
+
+Also produces handoff files for downstream agents:
+- `docs/solution-design/HANDOFF-story-refiner.md` — constraints and boundaries for story decomposition
+- `docs/solution-design/HANDOFF-api-architect.md` — API strategy and per-service endpoint expectations
+
+**With ADO Epic:**
+```
+@solution-architect EPIC-123
+```
+→ Also reads the ADO epic and child stories via MCP for additional structured requirements.
+
+**Re-run (update existing design):**
+```
+@solution-architect --update
+```
+→ Reads updated `discovery/` content, compares with existing design, produces delta updates with change log.
+
+> **Before running:** Place your business requirements, epic descriptions, regulatory documents, wireframes, and reference materials in the `discovery/` folder. See `discovery/README.md` for guidance on what to put there.
 
 ### Sprint Planning
 
@@ -437,7 +478,8 @@ To update a specific agent: delete the file from `.github/agents/` and re-run.
 
 ```
 .github/
-├── agents/                    ← 16 agents as *.agent.md (VS Code reads here)
+├── agents/                    ← 17 agents as *.agent.md (VS Code reads here)
+│   ├── solution-architect.agent.md       ← Genesis: discovery/ → full solution design
 │   ├── story-refiner.agent.md
 │   ├── api-architect.agent.md
 │   ├── test-architect.agent.md         ← QA test case generator
@@ -467,9 +509,10 @@ To update a specific agent: delete the file from `.github/agents/` and re-run.
 .copilot/instincts/            ← INDEX.json + learned pattern files
 .checkpoints/                  ← Agent phase recovery files (gitignored JSON) + README.md
 
-contexts/                      ← YOUR domain knowledge (you create this)
+discovery/                     ← Business requirements, epics, regulatory docs (@solution-architect reads)
+contexts/                      ← YOUR domain knowledge (manually curated)
 docs/
-├── solution-design/           ← YOUR architecture docs (you create these)
+├── solution-design/           ← @solution-architect creates these (or you add manually)
 ├── api-specs/                 ← @api-architect writes OpenAPI 3.1 specs here
 │   ├── common/
 │   │   ├── schemas/           ← errors.yaml (RFC 9457), pagination.yaml, audit.yaml
