@@ -9,7 +9,7 @@
 
 | Component | What it does |
 |-----------|-------------|
-| **16 Agents** | `@story-refiner`, `@api-architect`, `@test-architect`, `@sprint-orchestrator`, `@task-planner`, `@local-rakbank-dev-agent`, `@local-reviewer`, `@local-instinct-learner`, `@story-analyzer`, `@rakbank-backend-dev-agent`, `@address-comments`, `@instinct-extractor`, `@eval-runner`, `@telemetry-collector`, `@tech-debt-planner`, `@context-architect` |
+| **17 Agents** | `@story-refiner`, `@api-architect`, `@test-architect`, `@sprint-orchestrator`, `@task-planner`, `@local-rakbank-dev-agent`, `@local-reviewer`, `@git-publisher`, `@local-instinct-learner`, `@story-analyzer`, `@rakbank-backend-dev-agent`, `@address-comments`, `@instinct-extractor`, `@eval-runner`, `@telemetry-collector`, `@tech-debt-planner`, `@context-architect` |
 | **4 Skills** | Auto-activated in Copilot Chat: context-map, what-context-needed, refactor-plan, instinct-lookup |
 | **8 Instructions** | Auto-applied to every Copilot interaction: coding, security, testing, review, cross-service, mcp-tools, middleware, agent-essentials |
 | **Node.js Hooks** | Session logger (start/stop/prompt tracking) + git post-commit AI usage tracker — Windows & macOS compatible |
@@ -347,10 +347,27 @@ Open `sprintPlan/EPIC-001-sprint-status.md` to see:
 ```
 → Structured review against architecture + API contract + instincts. Writes the full report (machine-parseable JSON + human-readable) to `docs/reviews/{branch-name}-review.md` so `@sprint-orchestrator` can read the verdict automatically.
 
+### Publishing to GitHub (after review passes ✅)
+
+```
+@git-publisher STORY-456
+```
+→ Creates a feature branch from the release branch, commits all reviewed code with a structured message (story ID, service, ACs covered), pushes to remote, and raises a PR against the release branch. Refuses to proceed if review verdict is BLOCKED. Detects and excludes sensitive files. Supports multi-repo workspaces.
+
+```
+@address-comments
+```
+→ After human reviewers leave comments on the PR, this agent reads each comment and makes targeted fixes.
+
+```
+@instinct-extractor
+```
+→ Run before or after `@git-publisher` to capture reusable development patterns from this implementation into `.copilot/instincts/`.
+
 ```
 @local-instinct-learner "the team prefers X pattern over Y because Z"
 ```
-→ Captures the learning into `.copilot/instincts/` for future agents to apply
+→ Captures manual learnings into `.copilot/instincts/` for future agents to apply
 
 ---
 

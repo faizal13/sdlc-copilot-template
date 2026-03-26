@@ -202,10 +202,10 @@ Wait for completion. Read the review output from `docs/reviews/{branch-name}-rev
 
 | Review Verdict | Action |
 |---------------|--------|
-| ✅ READY TO COMMIT | Report success, move to next story |
-| ❌ BLOCKED | Show the critical issues to the developer. Ask: "Should I delegate back to @local-rakbank-dev-agent to fix these, or do you want to fix them manually?" |
+| ✅ READY TO COMMIT | Proceed to Step 4.5 (instinct extraction) then Step 4.6 (publish) |
+| ❌ BLOCKED | Show the critical issues to the developer. Ask: "Should I delegate back to @local-rakbank-dev-agent to fix these, or do you want to fix them manually?" → go to Step 4.4b |
 
-**Step 4.5 — After Fix (if BLOCKED)**
+**Step 4.4b — After Fix (if BLOCKED)**
 If developer chose auto-fix: delegate back to `@local-rakbank-dev-agent` with:
 ```
 @local-rakbank-dev-agent Fix the following critical issues from the code review:
@@ -216,12 +216,46 @@ CRITICAL REMINDERS:
 - Re-read .github/copilot-instructions.md and .github/instructions/*.instructions.md
 - Fix ONLY the listed issues — do not refactor unrelated code
 ```
-Then re-run `@local-reviewer`. Maximum 2 fix-review cycles per story.
+Then re-run `@local-reviewer`. Maximum 2 fix-review cycles per story. Once READY, continue to Step 4.5.
 
-**Step 4.6 — Update Status**
-After each story reaches REVIEWED or DONE:
-- Update `sprintPlan/EPIC-{id}-sprint-status.md`
-- Report progress: `✅ {STORY-ID} — reviewed. {remaining} stories left in Phase {N}.`
+**Step 4.5 — Extract Instincts (Optional but Recommended)**
+
+Ask the developer:
+```
+Review passed ✅ — would you like to capture learned patterns before publishing?
+  1. Yes — run @instinct-extractor (captures reusable patterns from this implementation)
+  2. Skip — publish directly
+```
+
+If yes, delegate to `@instinct-extractor`. Wait for completion. New instinct files will be committed alongside the code.
+
+**Step 4.6 — Publish to GitHub**
+
+Delegate to `@git-publisher`:
+```
+@git-publisher {STORY-ID}
+
+CRITICAL REMINDERS:
+- Review file: docs/reviews/{branch}-review.md — verdict must be READY
+- Task plan: taskPlan/{STORY-ID}-*.md
+- Release branch: {RELEASE_BRANCH from sprint status, or ask developer}
+- Branch convention: feature/{STORY-ID}-{kebab-summary}
+- Commit type: feat / fix / refactor based on story type
+- Include instinct files if @instinct-extractor ran
+```
+Wait for completion. Confirm PR was created and capture the PR URL.
+
+Report to developer:
+```
+✅ {STORY-ID} — PR created: {PR_URL}
+   Branch: feature/{STORY-ID}-{summary} → {RELEASE_BRANCH}
+   Next: review the PR on GitHub. If comments, run: @address-comments
+```
+
+**Step 4.7 — Update Status**
+After each story reaches PUBLISHED:
+- Update `sprintPlan/EPIC-{id}-sprint-status.md` — mark story as 🚀 PR CREATED with PR URL
+- Report progress: `🚀 {STORY-ID} — PR created. {remaining} stories left in Phase {N}.`
 - Move to the next READY story
 
 ### Mode 2: Remote Workflow

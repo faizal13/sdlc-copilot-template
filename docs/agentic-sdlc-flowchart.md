@@ -21,6 +21,7 @@ Feed this to GitHub Copilot agent at the start of any session to make it aware o
 | @rakbank-backend-dev-agent | Claude 4 Sonnet | Implements GitHub Issue spec → raises PR (follows API spec contract) | Automatic: `ai-generated` label |
 | @local-rakbank-dev-agent | Claude 4 Sonnet | Implements task plan in VS Code (follows API spec contract) | Manual: developer invokes |
 | @context-architect | Claude 4 Sonnet | Maps context & dependencies for changes | Manual: developer invokes |
+| @git-publisher | Claude 4 Sonnet | Creates feature branch from release, commits reviewed code, pushes, raises PR | Manual: after @local-reviewer ✅ |
 | @address-comments | Claude 4 Sonnet | Fixes PR review comments systematically | Automatic: `address-comments` label / manual |
 | @instinct-extractor | Claude 4 Haiku | Extracts patterns from merged PRs | Automatic: PR merge |
 | @local-instinct-learner | Claude 4 Haiku | Captures local session learnings into instinct library | Manual: developer invokes |
@@ -335,10 +336,13 @@ flowchart TD
     wait → read docs/reviews/{branch}-review.md"]
 
     G --> H{Review verdict?}
-    H -->|READY| I([Update sprint status\nMove to next story])
+    H -->|READY| H2(["Optional: @instinct-extractor\ncapture reusable patterns"])
     H -->|BLOCKED| J([Offer: auto-fix via @local-rakbank-dev-agent\nor manual fix])
     J --> K([Re-run @local-reviewer\nMax 2 fix-review cycles])
     K --> H
+
+    H2 --> H3(["@git-publisher {STORY-ID}\nfeature branch → commit → push → PR"])
+    H3 --> I(["🚀 PR created\nHuman reviews on GitHub\nIf comments → @address-comments"])
 
     I --> L{Phase complete?}
     L -->|No| G
