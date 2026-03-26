@@ -129,7 +129,7 @@ The installer will prompt you:
 What gets installed for **Local + Single folder**:
 ```
 .github/agents/              ← 15 agents as *.agent.md
-.github/instructions/        ← 6 auto-instructions + examples
+.github/instructions/        ← 8 auto-instructions + examples
 .github/skills/              ← 4 skills
 .github/hooks/               ← session-logger.json + Node.js scripts + git post-commit
 .copilot/instincts/          ← INDEX.json (grows as agents learn)
@@ -140,7 +140,7 @@ docs/api-specs/              ← @api-architect writes OpenAPI 3.1 specs here
 docs/api-specs/common/       ← shared schemas: RFC 9457 errors, pagination, audit headers
 docs/epic-plans/             ← @story-refiner writes here
 docs/reviews/                ← @local-reviewer writes structured review reports here
-docs/agent-telemetry/        ← agents append metrics here
+docs/agent-telemetry/        ← 7-source sprint telemetry (agents + sessions + prompts + reviews + changelog + checkpoints + plans)
 docs/ai-usage/               ← git hook logs AI usage here
 docs/issues/                 ← @story-analyzer local fallback
 evals/                       ← @eval-runner quality scores
@@ -455,7 +455,7 @@ To update a specific agent: delete the file from `.github/agents/` and re-run.
 
 ```
 .github/
-├── agents/                    ← 16 agents as *.agent.md (VS Code reads here)
+├── agents/                    ← 17 agents as *.agent.md (VS Code reads here)
 │   ├── story-refiner.agent.md
 │   ├── api-architect.agent.md
 │   ├── test-architect.agent.md         ← QA test case generator
@@ -469,6 +469,7 @@ To update a specific agent: delete the file from `.github/agents/` and re-run.
 │   ├── address-comments.agent.md
 │   ├── instinct-extractor.agent.md
 │   ├── eval-runner.agent.md
+│   ├── git-publisher.agent.md
 │   ├── telemetry-collector.agent.md
 │   ├── tech-debt-planner.agent.md
 │   └── context-architect.agent.md

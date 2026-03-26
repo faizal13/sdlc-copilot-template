@@ -25,7 +25,7 @@ Feed this to GitHub Copilot agent at the start of any session to make it aware o
 | @address-comments | Claude 4 Sonnet | Fixes PR review comments systematically | Automatic: `address-comments` label / manual |
 | @instinct-extractor | Claude 4 Haiku | Extracts patterns from merged PRs | Automatic: PR merge |
 | @local-instinct-learner | Claude 4 Haiku | Captures local session learnings into instinct library | Manual: developer invokes |
-| @telemetry-collector | Claude 4 Haiku | Aggregates per-invocation telemetry into sprint summary | Manual: end of sprint |
+| @telemetry-collector | Claude 4 Haiku | Aggregates 7 data sources (telemetry, changelog, reviews, sessions, prompts, checkpoints, sprint plans) into comprehensive sprint summary | Manual: end of sprint |
 
 **Model rationale:** Opus for decisions that shape all downstream work (planning, contract design, review, architecture, evaluation). Sonnet for code generation (best cost/quality ratio for implementation). Haiku for pattern matching and data aggregation (fast, cheap, doesn't need deep reasoning).
 
@@ -588,7 +588,7 @@ Both workflows converge at the **Human Gate** — your engineering judgment is a
 | Liquibase collisions | Timestamp naming: YYYYMMDD-HHMM-ticket-desc.sql | cross-service.instructions.md |
 | Accumulated debt | @tech-debt-planner scan every 2 sprints | @tech-debt-planner |
 | No quality measurement | Evaluation framework with golden refs + scoring rubric | evals/, @eval-runner |
-| No operational visibility | Agent telemetry — per-invocation metrics + sprint summaries | docs/agent-telemetry/, @telemetry-collector |
+| No operational visibility | Agent telemetry — 7 sources aggregated: telemetry entries, changelog, reviews, session logs, prompt logs, checkpoints, sprint plans | docs/agent-telemetry/, @telemetry-collector |
 | Manual story sequencing | Sprint orchestrator reads execution plan + presents parallel commands | @sprint-orchestrator |
 | Agent output not machine-readable | JSON metadata blocks in issues, task plans, review reports | @story-analyzer, @task-planner, @local-reviewer |
 | Instinct library bloat | INDEX.json for progressive disclosure — load only relevant instincts | .copilot/instincts/INDEX.json |
@@ -625,7 +625,7 @@ Three guards prevent any infinite loop:
 
 ```
 .github/
-├── agents/                              ← 16 agents as *.agent.md (correct VS Code path)
+├── agents/                              ← 17 agents as *.agent.md (correct VS Code path)
 │   ├── story-refiner.agent.md           Epic → execution plan + technical tasks
 │   ├── api-architect.agent.md           Execution plan → OpenAPI 3.1 specs
 │   ├── test-architect.agent.md          ACs + API specs → QA test cases
@@ -640,15 +640,18 @@ Three guards prevent any infinite loop:
 │   ├── address-comments.agent.md        Fixes PR review comments
 │   ├── context-architect.agent.md       Maps dependencies for changes
 │   ├── tech-debt-planner.agent.md       Periodic codebase health scan
+│   ├── git-publisher.agent.md           Feature branch → commit → push → PR
 │   ├── eval-runner.agent.md             Evaluates agent output quality
-│   └── telemetry-collector.agent.md     Aggregates sprint telemetry
+│   └── telemetry-collector.agent.md     Aggregates 7-source sprint telemetry
 ├── instructions/
 │   ├── coding.instructions.md           Java/Spring Boot standards
 │   ├── review.instructions.md           Review checklist
 │   ├── security.instructions.md         Security rules
 │   ├── testing.instructions.md          Testing standards
 │   ├── cross-service.instructions.md    Multi-repo rules
-│   └── mcp-tools.instructions.md        MCP tool usage rules
+│   ├── mcp-tools.instructions.md        MCP tool usage rules
+│   ├── middleware.instructions.md       Middleware/cross-cutting patterns
+│   └── agent-essentials.instructions.md Always-on: context loading, banking rules, bootstrap detection
 ├── skills/
 │   ├── context-map/SKILL.md             Context dependency mapping
 │   ├── what-context-needed/SKILL.md     Smart context loading
@@ -660,7 +663,7 @@ Three guards prevent any infinite loop:
 │   └── session-logger/                  ← Node.js scripts (Windows + macOS)
 │       ├── log-session-start.js
 │       ├── log-session-end.js
-│       └── log-prompt.js
+│       └── log-prompt.js                Logs agent name, prompt, char count, est. tokens
 └── workflows/                           ← Hybrid mode only
     ├── 01-create-release-branch.yml
     ├── 02-story-to-issue.yml
@@ -690,10 +693,11 @@ docs/
 │   └── EPIC-{id}/                      Functional, API contract, integration, business rule tests
 ├── reviews/                             @local-reviewer structured reports
 │   └── {branch-name}-review.md         Machine-parseable JSON + human-readable
-├── agent-telemetry/                     Per-agent operational metrics
+├── agent-telemetry/                     Sprint-level operational metrics (7 sources)
 │   ├── README.md
-│   ├── TEMPLATE.md
-│   └── current-sprint.md               Live telemetry entries
+│   ├── TEMPLATE.md                      Sprint summary template (delivery, quality, efficiency, stability)
+│   ├── current-sprint.md               Live telemetry entries (agents append here)
+│   └── sprint-{N}-summary.md           Generated sprint summaries (archived)
 ├── ai-usage/                            Story-level audit trail (git hook)
 ├── issues/                              @story-analyzer local fallback drafts
 └── project-changelog.md                 Requirement drift tracker
