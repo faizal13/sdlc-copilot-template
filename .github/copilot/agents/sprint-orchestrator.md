@@ -117,7 +117,10 @@ How would you like to work?
 2️⃣  **Remote workflow** — I'll delegate to @story-analyzer → creates GitHub Issues
     (coding agent picks up Issues via GitHub Actions)
 
-3️⃣  **Status only** — just write the sprint status file, I'll run agents myself
+3️⃣  **Plan only** — I'll create task plans for ALL READY stories, then STOP
+    (you review each task plan and run @local-rakbank-dev-agent yourself, story by story)
+
+4️⃣  **Status only** — just write the sprint status file, I'll run agents myself
 ```
 
 Store their choice as `WORKFLOW_MODE` for the rest of this session.
@@ -126,21 +129,58 @@ Store their choice as `WORKFLOW_MODE` for the rest of this session.
 
 ## Step 4 — Orchestrate: Delegate to Sub-Agents
 
+### Pre-Flight: Detect Repo State (MANDATORY before any delegation)
+
+Before delegating to ANY coding sub-agent, check the workspace:
+
+```
+1. Does `pom.xml` exist at the workspace root?
+2. If yes — does it contain `ae.rakbank` groupId?
+3. Does `.github/copilot-instructions.md` exist?
+4. Does `.github/instructions/` directory contain instruction files?
+```
+
+Store the results as:
+- `REPO_STATE` = `empty` | `existing-rakbank` | `existing-other`
+- `INSTRUCTIONS_AVAILABLE` = `true` | `false`
+
+These are passed to sub-agents in every handoff prompt below.
+
+---
+
 ### Mode 1: Local Workflow
 
 For each READY story in the active phase (respecting parallel/sequential rules from the execution plan):
 
 **Step 4.1 — Create Task Plan**
-Delegate to `@task-planner`:
+Delegate to `@task-planner` with an enriched prompt that ensures context loading:
 ```
 @task-planner {STORY-ID}
+
+CRITICAL REMINDERS (do not skip):
+- Read ALL files in .github/instructions/ (coding, security, testing, middleware, cross-service)
+- Read .github/copilot-instructions.md for Java coding standards
+- Read ALL files in docs/solution-design/ and contexts/ for domain context
+- Read docs/project-changelog.md for requirement drift history
+- If this story involves external/middleware API calls: flag it and specify SOAP/XML or REST/JSON variant
+- Follow your FULL agent instructions from start to finish — do not skip any step
 ```
 Wait for completion. Confirm `taskPlan/{STORY-ID}-*.md` was created.
 
 **Step 4.2 — Implement Code**
-Delegate to `@local-rakbank-dev-agent`:
+
+First, check the task plan for integration touchpoints (middleware, external API) — the dev agent needs to know.
+
+Delegate to `@local-rakbank-dev-agent` with an enriched prompt:
 ```
 @local-rakbank-dev-agent taskPlan/{filename}.md
+
+CRITICAL REMINDERS (do not skip):
+- REPO STATE: {REPO_STATE} — {if empty: "No pom.xml found. You MUST run Phase 1 Bootstrap using the microservice-initializr BEFORE writing any code. Do NOT scaffold manually."} {if existing-rakbank: "Existing RAKBANK project. Skip bootstrap, go to Phase 2."}
+- Read ALL files in .github/instructions/ — especially coding.instructions.md, security.instructions.md, testing.instructions.md
+- Read .github/copilot-instructions.md for Java coding standards — this is MANDATORY
+- {if task plan has integration touchpoints: "This story has middleware/external API integration. Read .github/instructions/middleware.instructions.md and follow the layered pattern EXACTLY."}
+- Follow your FULL agent instructions from Phase 0 through Phase 6 — do not skip any phase
 ```
 Wait for completion. This is the longest step — the dev agent will write code, tests, and migrations.
 
@@ -148,6 +188,12 @@ Wait for completion. This is the longest step — the dev agent will write code,
 Delegate to `@local-reviewer`:
 ```
 @local-reviewer
+
+CRITICAL REMINDERS:
+- Read .github/copilot-instructions.md and ALL .github/instructions/*.instructions.md for review criteria
+- Read docs/solution-design/ and contexts/ to validate against architecture and business rules
+- Check that code follows patterns in coding.instructions.md (naming, error handling, BigDecimal for money)
+- If middleware code exists: verify it follows middleware.instructions.md (ApiCallDetails, RestConnector/ClientConnectionService)
 ```
 Wait for completion. Read the review output from `docs/reviews/{branch-name}-review.md`.
 
@@ -163,6 +209,11 @@ If developer chose auto-fix: delegate back to `@local-rakbank-dev-agent` with:
 ```
 @local-rakbank-dev-agent Fix the following critical issues from the code review:
 {paste critical issues from review report}
+
+CRITICAL REMINDERS:
+- REPO STATE: {REPO_STATE}
+- Re-read .github/copilot-instructions.md and .github/instructions/*.instructions.md
+- Fix ONLY the listed issues — do not refactor unrelated code
 ```
 Then re-run `@local-reviewer`. Maximum 2 fix-review cycles per story.
 
@@ -180,6 +231,11 @@ For each READY story:
 Delegate to `@story-analyzer`:
 ```
 @story-analyzer {STORY-ID}
+
+CRITICAL REMINDERS:
+- Read ALL files in .github/instructions/ and .github/copilot-instructions.md
+- Read ALL files in docs/solution-design/ and contexts/
+- Include integration notes in the GitHub Issue if middleware/external API is involved
 ```
 Wait for completion. Confirm GitHub Issue was created.
 
@@ -196,7 +252,52 @@ Remote agents will implement these. Re-run @sprint-orchestrator EPIC-{id} --cont
 after PRs are merged to advance to the next phase.
 ```
 
-### Mode 3: Status Only
+### Mode 3: Plan Only
+
+For ALL READY stories in the active phase (respecting the execution plan order), create task plans but do NOT delegate to coding or review agents:
+
+**Step 4.1 — Create Task Plans (batch)**
+For each READY story, delegate to `@task-planner` with the same enriched prompt as Mode 1:
+```
+@task-planner {STORY-ID}
+
+CRITICAL REMINDERS (do not skip):
+- Read ALL files in .github/instructions/ (coding, security, testing, middleware, cross-service)
+- Read .github/copilot-instructions.md for Java coding standards
+- Read ALL files in docs/solution-design/ and contexts/ for domain context
+- Read docs/project-changelog.md for requirement drift history
+- If this story involves external/middleware API calls: flag it and specify SOAP/XML or REST/JSON variant
+- Follow your FULL agent instructions from start to finish — do not skip any step
+```
+Wait for completion. Confirm `taskPlan/{STORY-ID}-*.md` was created. Then move to the next READY story.
+
+**Step 4.2 — Summary After All Plans Created**
+After ALL READY stories have task plans, output:
+```
+📋 Plan Only — Phase {N} Complete
+
+Task plans created for {count} READY stories:
+{For each story:}
+  📄 {STORY-ID} — taskPlan/{filename}.md
+     Service: {service}  |  ACs: {count}  |  Integrations: {list or "none"}  |  Gaps: {count}
+
+Execution order (from execution plan):
+  1. {STORY-ID} — {title} {if has dependencies: "(depends on: {deps})"}
+  2. {STORY-ID} — {title}
+  ...
+
+Next steps (manual):
+  1. Review each task plan for accuracy and completeness
+  2. Resolve any gaps marked in the plans
+  3. For each story, run: @local-rakbank-dev-agent taskPlan/{filename}.md
+  4. After coding: @local-reviewer
+  5. Re-run: @sprint-orchestrator EPIC-{id} --continue   ← to advance the sprint
+```
+
+**Step 4.3 — Update Sprint Status**
+Update `sprintPlan/EPIC-{id}-sprint-status.md` — mark all planned stories as 📋 TASK PLAN READY.
+
+### Mode 4: Status Only
 
 Write the sprint status file (Step 6a) and stop. Do not delegate to any sub-agents.
 This is the same behavior as the original sprint orchestrator.

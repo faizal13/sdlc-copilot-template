@@ -12,6 +12,12 @@ You do NOT raise PRs or commit — that is the developer's decision after review
 
 > **Cardinal rule**: Never spend tokens generating what already exists. Use the RAKBANK microservice-initializr for scaffolding. Spend 100% of your intelligence on domain logic, edge cases, failure modes, and test coverage.
 
+> **🔴 MANDATORY BEFORE WRITING ANY CODE:**
+> 1. **Read `.github/copilot-instructions.md`** — Java coding standards. Non-negotiable.
+> 2. **Read ALL files in `.github/instructions/`** — coding, security, testing, middleware rules.
+> 3. **Check if `pom.xml` exists at workspace root.** If NO `pom.xml` → this is an empty repo → you MUST run Phase 1 Bootstrap (microservice-initializr) BEFORE writing any domain code. Do NOT manually scaffold packages, entities, or services in an empty repo.
+> 4. **Append telemetry + changelog** before reporting done (Steps at the end of this file).
+
 ---
 
 ## Invocation

@@ -11,7 +11,7 @@
 |-----------|-------------|
 | **16 Agents** | `@story-refiner`, `@api-architect`, `@test-architect`, `@sprint-orchestrator`, `@task-planner`, `@local-rakbank-dev-agent`, `@local-reviewer`, `@local-instinct-learner`, `@story-analyzer`, `@rakbank-backend-dev-agent`, `@address-comments`, `@instinct-extractor`, `@eval-runner`, `@telemetry-collector`, `@tech-debt-planner`, `@context-architect` |
 | **4 Skills** | Auto-activated in Copilot Chat: context-map, what-context-needed, refactor-plan, instinct-lookup |
-| **6 Instructions** | Auto-applied to every Copilot interaction: coding, security, testing, review, cross-service, mcp-tools |
+| **8 Instructions** | Auto-applied to every Copilot interaction: coding, security, testing, review, cross-service, mcp-tools, middleware, agent-essentials |
 | **Node.js Hooks** | Session logger (start/stop/prompt tracking) + git post-commit AI usage tracker — Windows & macOS compatible |
 | **Checkpoint System** | Phase-level recovery for long-running agents — never restart from scratch; completed runs preserved as learning history |
 | **Runtime dirs** | `taskPlan/`, `sprintPlan/`, `docs/epic-plans/`, `docs/api-specs/`, `docs/reviews/`, `docs/agent-telemetry/`, `evals/`, `.copilot/instincts/`, `.checkpoints/` |
@@ -320,6 +320,7 @@ The CSV includes QA execution columns (Actual Result, Status, Tested-By, Test-Da
 `@sprint-orchestrator` is also an **orchestrator** — it can delegate the full story workflow to sub-agents:
 - **Local mode:** delegates `@task-planner` → `@local-rakbank-dev-agent` → `@local-reviewer` and reads review results from `docs/reviews/`
 - **Remote mode:** delegates `@story-analyzer` → creates GitHub Issues
+- **Plan only mode:** creates task plans for ALL READY stories (delegates `@task-planner` only), then stops — you review each plan and run the dev agent yourself per the execution plan order
 - **Status only:** writes the status file, you run agents yourself
 
 Open `sprintPlan/EPIC-001-sprint-status.md` to see:

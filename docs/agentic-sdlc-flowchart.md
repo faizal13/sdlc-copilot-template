@@ -319,9 +319,10 @@ flowchart TD
     E --> F
 
     F["ASK DEVELOPER: workflow mode?
-    1) Local  → delegate to sub-agents
+    1) Local  → delegate to sub-agents end-to-end
     2) Remote → create GitHub Issues
-    3) Status only → write status file"]
+    3) Plan only → create ALL task plans, STOP for review
+    4) Status only → write status file"]
 
     F -->|Local| G["FOR EACH READY STORY:
     delegate @task-planner {STORY-ID}
@@ -342,6 +343,13 @@ flowchart TD
     I --> L{Phase complete?}
     L -->|No| G
     L -->|Yes| M([Write sprintPlan/EPIC-100-sprint-status.md\nAdvance to next phase])
+
+    F -->|Plan only| P["FOR EACH READY STORY:
+    delegate @task-planner {STORY-ID}
+    wait → confirm taskPlan created"]
+    P --> Q([All plans created → summary with
+    execution order + next steps
+    Developer runs dev agent manually])
 
     F -->|Remote| N["FOR EACH READY STORY:
     delegate @story-analyzer {STORY-ID}
@@ -591,6 +599,10 @@ Both workflows converge at the **Human Gate** — your engineering judgment is a
 | QA test cases not independent of dev | @test-architect generates test cases; dev agents do NOT consume them — QA maintains independent validation | @test-architect |
 | Test cases miss edge cases | Every AC gets positive + negative TC; every threshold gets boundary TC; every endpoint gets 400/401/404 | @test-architect |
 | Requirement drift not visible to QA | @test-architect re-runs produce Delta sections showing added/modified/removed TCs | @test-architect, project-changelog |
+| Agent-to-agent handoff loses instructions | Enriched handoff prompts with CRITICAL REMINDERS for context loading, bootstrap detection, instruction files | @sprint-orchestrator — Step 4 handoffs |
+| Instruction files not loaded in agent chains | `agent-essentials.instructions.md` with `applyTo: '**'` — always injected regardless of file pattern | .github/instructions/agent-essentials.instructions.md |
+| Dev agent skips bootstrap on empty repo | 🔴 MANDATORY pre-flight block at top of agent file + orchestrator passes REPO_STATE in handoff | @local-rakbank-dev-agent, @sprint-orchestrator |
+| Full automation too risky for new teams | Plan Only mode — create all task plans then STOP for manual review before coding | @sprint-orchestrator — Mode 3 |
 
 ---
 

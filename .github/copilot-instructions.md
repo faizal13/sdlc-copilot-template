@@ -39,6 +39,7 @@ Additional instruction files in `.github/instructions/` are auto-applied by VS C
 | `review.instructions.md` | All files | Pre-commit review rules |
 | `cross-service.instructions.md` | All files | Cross-service rules |
 | `middleware.instructions.md` | `middleware/**`, `connector/**`, `service/**` | **Middleware/external API pattern (SOAP + REST)** |
+| `agent-essentials.instructions.md` | All files | **Always-on guardrails** — mandatory context loading, bootstrap detection, banking domain rules |
 
 > **Middleware rule:** When writing any class that calls an external system (middleware, SOAP/XML, REST API), follow `.github/instructions/middleware.instructions.md` strictly. Use `ApiCallDetails` + `RestConnector` (REST) or `AbstractMiddleware` + `MiddlewareBaseService` (SOAP). Never call `RestTemplate` directly.
 
