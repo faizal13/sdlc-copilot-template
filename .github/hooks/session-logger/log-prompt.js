@@ -1,8 +1,14 @@
 #!/usr/bin/env node
 // log-prompt.js — Fired by VS Code on every userPromptSubmitted event
 //
-// VS Code sends a JSON payload on stdin:
-//   { timestamp, sessionId, hookEventName, cwd, transcript_path, prompt }
+// VS Code sends a JSON payload on stdin. Known fields:
+//   { timestamp, sessionId, hookEventName, cwd, transcript_path, prompt,
+//     agentId, participantId, agent, participant, references, command }
+//
+// When the user selects an agent via the Copilot Chat UI picker, the agent
+// name is NOT embedded in `prompt` — it arrives in a dedicated field.
+// This script checks all known field locations before falling back to
+// @mention parsing in the prompt text.
 //
 // Writes one JSON line to: logs/copilot/prompts.log
 
@@ -25,9 +31,42 @@ process.stdin.on('end', () => {
   const sessionId  = payload.sessionId  || '';
   const promptText = payload.prompt     || payload.userMessage || '';
 
-  // ── Extract @agent-name from prompt (e.g. "@task-planner STORY-456") ────────
-  const agentMatch = promptText.match(/@([a-zA-Z][a-zA-Z0-9_-]*)/);
-  const agent      = agentMatch ? agentMatch[0] : '(direct)';
+  // ── Resolve agent name — check all locations VS Code may send it ─────────────
+  //
+  // Priority order:
+  //  1. Dedicated agent/participant fields (set when user picks from UI dropdown)
+  //  2. @mention inside the prompt text (set when user types @agent-name manually)
+  //  3. Slash command (e.g. /fix → treat as command)
+  //  4. Fallback: '(direct)' — plain prompt with no agent context
+  //
+  const agentFromPayload =
+    payload.agentId        ||   // VS Code internal agent ID
+    payload.participantId  ||   // Chat participant ID (used in some VS Code builds)
+    payload.agent          ||   // Some Copilot builds use this key
+    payload.participant    ||   // Alternate key name
+    (payload.references && payload.references.find &&
+      payload.references.find(r => r.type === 'agent' || r.type === 'participant')?.name) ||
+    null;
+
+  // Normalise: strip leading '@' if present, add it back consistently
+  const normalise = s => s ? '@' + s.replace(/^@/, '') : null;
+
+  const agentFromMention = (() => {
+    const m = promptText.match(/^@([a-zA-Z][a-zA-Z0-9_-]*)/);
+    return m ? m[0] : null;
+  })();
+
+  const agentFromCommand = (() => {
+    if (payload.command) return '/' + payload.command.replace(/^\//, '');
+    const m = promptText.match(/^\/([a-zA-Z][a-zA-Z0-9_-]*)/);
+    return m ? m[0] : null;
+  })();
+
+  const agent =
+    normalise(agentFromPayload) ||
+    agentFromMention            ||
+    agentFromCommand            ||
+    '(direct)';
 
   // ── Truncate prompt to 500 chars — full text lives in the transcript ─────────
   const prompt = promptText.slice(0, 500);
@@ -37,9 +76,18 @@ process.stdin.on('end', () => {
   const logFile = path.join(logDir, 'prompts.log');
   fs.mkdirSync(logDir, { recursive: true });
 
-  // ── Append one JSON line ────────────────────────────────────────────────────
+  // ── Append one JSON line ─────────────────────────────────────────────────────
   const entry = JSON.stringify({ timestamp, sessionId, agent, prompt });
   fs.appendFileSync(logFile, entry + '\n', 'utf8');
+
+  // ── Debug dump (one-shot, only if logs/copilot/debug-payload.json absent) ────
+  // Uncomment the block below temporarily to capture the raw payload and
+  // identify the exact field VS Code uses on your build. Delete after inspecting.
+  //
+  // const debugFile = path.join(logDir, 'debug-payload.json');
+  // if (!fs.existsSync(debugFile)) {
+  //   fs.writeFileSync(debugFile, JSON.stringify(payload, null, 2), 'utf8');
+  // }
 
   process.exit(0);
 });

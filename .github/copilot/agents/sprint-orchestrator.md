@@ -1,5 +1,6 @@
 ---
 description: 'Orchestrates sprint execution end-to-end — reads the execution plan, detects local vs remote workflow, delegates to sub-agents (@task-planner, @story-analyzer, @local-rakbank-dev-agent), tracks progress, and drives stories from READY to DONE'
+model: claude-opus-4-6
 name: 'Sprint Orchestrator'
 tools: ['read', 'edit', 'search', 'agent', 'web', 'microsoft/azure-devops-mcp/*']
 ---
