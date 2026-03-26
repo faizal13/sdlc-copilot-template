@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 // log-session-start.js — Fired by VS Code when a new Copilot session starts
 //
-// VS Code sends a JSON payload on stdin:
-//   { timestamp, sessionId, hookEventName, cwd, transcript_path, source }
+// VS Code sends a JSON payload on stdin. Field names vary across builds:
+//   { timestamp, sessionId|session_id, hookEventName, cwd, transcript_path, source }
 //
 // Writes one JSON line to: logs/copilot/session.log
 
@@ -10,6 +10,14 @@
 
 const fs   = require('fs');
 const path = require('path');
+
+// ── Resolve a field from multiple possible key names ────────────────────────
+function resolve(payload, ...keys) {
+  for (const k of keys) {
+    if (payload[k] !== undefined && payload[k] !== null && payload[k] !== '') return payload[k];
+  }
+  return '';
+}
 
 // ── Read stdin payload ────────────────────────────────────────────────────────
 let raw = '';
@@ -22,8 +30,8 @@ process.stdin.on('end', () => {
   try { payload = JSON.parse(raw); } catch (_) { /* ignore malformed payload */ }
 
   const timestamp = payload.timestamp || new Date().toISOString();
-  const sessionId = payload.sessionId || '';
-  const cwd       = payload.cwd       || process.cwd();
+  const sessionId = resolve(payload, 'sessionId', 'session_id', 'id');
+  const cwd       = payload.cwd || process.cwd();
 
   // ── Ensure log directory exists ─────────────────────────────────────────────
   const logDir  = path.join(process.cwd(), 'logs', 'copilot');

@@ -28,7 +28,7 @@ process.stdin.on('end', () => {
   try { payload = JSON.parse(raw); } catch (_) { /* ignore malformed payload */ }
 
   const timestamp  = payload.timestamp  || new Date().toISOString();
-  const sessionId  = payload.sessionId  || '';
+  const sessionId  = payload.sessionId  || payload.session_id || payload.id || '';
   const promptText = payload.prompt     || payload.userMessage || '';
 
   // ── Resolve agent name — check all locations VS Code may send it ─────────────
@@ -76,8 +76,12 @@ process.stdin.on('end', () => {
   const logFile = path.join(logDir, 'prompts.log');
   fs.mkdirSync(logDir, { recursive: true });
 
+  // ── Metrics: prompt size as proxy for input tokens (~4 chars ≈ 1 token) ─────
+  const promptChars  = promptText.length;
+  const estTokens    = Math.round(promptChars / 4);
+
   // ── Append one JSON line ─────────────────────────────────────────────────────
-  const entry = JSON.stringify({ timestamp, sessionId, agent, prompt });
+  const entry = JSON.stringify({ timestamp, sessionId, agent, prompt, promptChars, estTokens });
   fs.appendFileSync(logFile, entry + '\n', 'utf8');
 
   // ── Debug dump (one-shot, only if logs/copilot/debug-payload.json absent) ────
