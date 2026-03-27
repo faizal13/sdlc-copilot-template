@@ -107,7 +107,7 @@ Inspect the repository root. Determine the project state:
 | Signal | State | Action |
 |--------|-------|--------|
 | `pom.xml` exists at root with `ae.rakbank` groupId | **Existing project** | Skip to Phase 2 |
-| `pom.xml` exists but is NOT a RAKBANK microservice | **Foreign project** | STOP — comment on the issue: "Repository is not a RAKBANK microservice. Bootstrap skipped." |
+| `pom.xml` exists but is NOT a RAKBANK microservice | **Foreign project** | STOP — use `add_issue_comment` MCP tool to post: "Repository is not a RAKBANK microservice. Bootstrap skipped." |
 | No `pom.xml` at root (empty or docs-only repo) | **New project** | Execute bootstrap below |
 
 ### Bootstrap — New Projects Only
@@ -931,7 +931,7 @@ fund-transfer.retry.delay-ms=1000
 
 - Read the ENTIRE issue before writing any code — map all entities, relationships, and acceptance criteria first
 - Follow existing patterns in the codebase — `grep` and `find` before inventing
-- If the issue is ambiguous, create a comment on the issue listing specific questions — never guess on business logic
+- If the issue is ambiguous, use `add_issue_comment` GitHub MCP tool to post specific questions on the issue — never guess on business logic
 - When in doubt between two approaches, choose the one that's easier to test
 - Every decision should survive the question: "What happens when this runs across 3 replicas at 1000 req/s?"
 
@@ -942,18 +942,29 @@ fund-transfer.retry.delay-ms=1000
 ### Iteration Limits
 - `mvn verify`: Run once. If fails, fix and retry. MAX 3 cycles total.
 - File reads: If a file doesn't exist after 2 lookups, move on.
-- If stuck in a loop (same error 3 times): STOP, comment the error on the issue.
+- If stuck in a loop (same error 3 times): STOP — use `add_issue_comment` GitHub MCP tool to post the error details on the issue.
 
 ### Error Handling
-- Compilation errors: Read, fix, retry (max 3). If still failing, comment on issue.
-- Test failures: Read, fix, retry (max 3). If still failing, comment on issue.
-- Missing dependencies: Comment on issue asking for clarification. Do NOT guess.
+
+When posting errors or questions to the issue, use:
+```
+GitHub MCP tool: add_issue_comment
+Parameters:
+  owner:        {OWNER}
+  repo:         {REPO}
+  issue_number: {ISSUE_NUMBER}
+  body:         {error details or question}
+```
+
+- Compilation errors: Read, fix, retry (max 3). If still failing — post error via `add_issue_comment` and STOP.
+- Test failures: Read, fix, retry (max 3). If still failing — post failure details via `add_issue_comment` and STOP.
+- Missing dependencies: Post clarifying questions via `add_issue_comment`. Do NOT guess.
 
 ### Phase Transition Checkpoints
 Between each major phase:
 1. Verify compilation: `mvn compile -q` — fix before proceeding
 2. Check git status — ensure no unexpected file modifications
-3. If any phase fails after 3 fix attempts: STOP, comment on the issue, do not continue
+3. If any phase fails after 3 fix attempts: STOP — post failure details via `add_issue_comment` GitHub MCP tool, do not continue
 
 ### Boundaries — I MUST NOT
 - Modify files outside `src/` and `src/test/` directories

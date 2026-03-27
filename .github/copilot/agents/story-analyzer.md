@@ -408,14 +408,26 @@ Fix any issues in the issue content before creating.
 ## Step 6 — Create the Issue and Output Summary
 
 **Mode selection (check automatically):**
-- If GitHub MCP is available → create a real GitHub Issue via MCP and record the URL
-- If GitHub MCP is unavailable → write the issue as a local file
+
+**GitHub MCP mode** (preferred) — create the issue using:
+```
+GitHub MCP tool: issue_write
+Parameters:
+  method: "create"
+  owner:  {OWNER}
+  repo:   {REPO}
+  title:  "[ADO-{ADO_ID}] {story title} — {target service}"
+  body:   {full issue markdown from template above}
+  labels: ["ai-generated", "{service-name}", "release/{branch-suffix}", "sprint-{N}"]
+```
+Store the returned issue number as `ISSUE_NUMBER` and URL as `ISSUE_URL`.
+
+**Local fallback mode** (if GitHub MCP unavailable) — write the issue to a local file:
+- Write to `docs/issues/{ADO_ID}-{service-name}-issue.md` with the full issue markdown
+- After writing, note: "When GitHub MCP is available: create an issue from this file and add label `ai-generated`."
 
 > **Prerequisite (local mode):** The directory `docs/issues/` must exist (created by `workspace-init.sh`).
-> Use the editFiles tool to create this file — This is the correct tool for file creation in GitHub Copilot Agent Mode.
 > If a write fails, ask the developer to run `workspace-init.sh` first.
-
-**Local mode — write to `docs/issues/{ADO_ID}-{service-name}-issue.md`** with the full GitHub Issue markdown content (same structure as if creating a real issue). After writing, note: "When GitHub MCP is available: create an issue from this file and add label `ai-generated`."
 
 Create the single GitHub Issue (or write the local file), then output:
 
