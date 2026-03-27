@@ -267,6 +267,18 @@ Create a PR via GitHub MCP:
 
 ---
 
+## Step 7.5 — Request Copilot Review
+
+After the PR is created, request GitHub Copilot as a reviewer for an automated first-pass review:
+
+```bash
+gh pr edit {PR_NUMBER} --add-reviewer "@copilot"
+```
+
+> **Note:** If the `gh` CLI command fails (Copilot review not available on this repo), skip silently — this is optional. Report in the output summary whether Copilot review was requested.
+
+---
+
 ## Step 8 — Output Summary
 
 **🔴 DO NOT show this summary to the user yet. First, complete the two mandatory append steps below.**
@@ -281,12 +293,14 @@ Create a PR via GitHub MCP:
 🔗 PR:        {PR_URL}
 📄 Files:     {count} files committed
 🏷️  Labels:    ai-generated, {service-name}, {STORY-ID}
+🤖 Copilot review: {requested / not available}
 
 Next steps:
   1. Review the PR on GitHub: {PR_URL}
-  2. If comments: @address-comments
-  3. After approval: merge via GitHub
-  4. Post-merge: @instinct-extractor (if not run already)
+  2. Wait for Copilot review (if requested)
+  3. If comments: @address-comments
+  4. After approval: merge via GitHub
+  5. Post-merge: @instinct-extractor (if not run already)
 ```
 
 ---

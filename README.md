@@ -352,12 +352,12 @@ Open `sprintPlan/EPIC-001-sprint-status.md` to see:
 ```
 @git-publisher STORY-456
 ```
-→ Creates a feature branch from the release branch, commits all reviewed code with a structured message (story ID, service, ACs covered), pushes to remote, and raises a PR against the release branch. Refuses to proceed if review verdict is BLOCKED. Detects and excludes sensitive files. Supports multi-repo workspaces.
+→ Creates a feature branch from the release branch, commits all reviewed code with a structured message (story ID, service, ACs covered), pushes to remote, raises a PR against the release branch, and requests Copilot review. Refuses to proceed if review verdict is BLOCKED. Detects and excludes sensitive files. Supports multi-repo workspaces.
 
 ```
 @address-comments
 ```
-→ After human reviewers leave comments on the PR, this agent reads each comment and makes targeted fixes.
+→ After human reviewers leave comments on the PR, this agent reads each comment, makes targeted fixes, pushes to the feature branch, replies to each comment on GitHub, and requests a fresh Copilot review. Large changes (≥50 lines or architectural) are automatically delegated to `@local-rakbank-dev-agent`.
 
 ```
 @instinct-extractor

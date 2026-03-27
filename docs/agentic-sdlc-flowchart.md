@@ -341,8 +341,8 @@ flowchart TD
     J --> K([Re-run @local-reviewer\nMax 2 fix-review cycles])
     K --> H
 
-    H2 --> H3(["@git-publisher {STORY-ID}\nfeature branch → commit → push → PR"])
-    H3 --> I(["🚀 PR created\nHuman reviews on GitHub\nIf comments → @address-comments"])
+    H2 --> H3(["@git-publisher {STORY-ID}\nfeature branch → commit → push → PR\n+ request Copilot review"])
+    H3 --> I(["🚀 PR created + Copilot review requested\nHuman reviews on GitHub\nIf comments → @address-comments\n(large changes auto-delegated to dev agent)"])
 
     I --> L{Phase complete?}
     L -->|No| G
@@ -607,6 +607,9 @@ Both workflows converge at the **Human Gate** — your engineering judgment is a
 | Instruction files not loaded in agent chains | `agent-essentials.instructions.md` with `applyTo: '**'` — always injected regardless of file pattern | .github/instructions/agent-essentials.instructions.md |
 | Dev agent skips bootstrap on empty repo | 🔴 MANDATORY pre-flight block at top of agent file + orchestrator passes REPO_STATE in handoff | @local-rakbank-dev-agent, @sprint-orchestrator |
 | Full automation too risky for new teams | Plan Only mode — create all task plans then STOP for manual review before coding | @sprint-orchestrator — Mode 3 |
+| PR comment fixes not pushed | @address-comments now commits + pushes fixes + replies on GitHub + requests Copilot re-review | @address-comments — Steps 4-7 |
+| Large PR comments need dev agent | Comments requiring ≥50 lines changed auto-delegated to @local-rakbank-dev-agent via `agent` tool | @address-comments — Step 2.5 |
+| No automated first-pass PR review | @git-publisher and @address-comments request GitHub Copilot as reviewer after push | @git-publisher Step 7.5, @address-comments Step 7 |
 
 ---
 
