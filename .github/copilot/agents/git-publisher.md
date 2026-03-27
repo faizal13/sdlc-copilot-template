@@ -209,7 +209,21 @@ STOP and report.
 
 ## Step 7 — Create Pull Request
 
-Create a PR via GitHub MCP:
+Create a PR using the GitHub MCP tool:
+
+```
+GitHub MCP tool: create_pull_request
+Parameters:
+  owner: {OWNER}
+  repo:  {REPO}
+  title: {PR_TITLE}
+  body:  {PR_BODY}
+  head:  feature/{STORY-ID}-{kebab-summary}
+  base:  {RELEASE_BRANCH}
+  draft: false
+```
+
+Store the returned PR number as `PR_NUMBER` and PR URL as `PR_URL`.
 
 **PR Title:**
 ```
@@ -269,13 +283,19 @@ Create a PR via GitHub MCP:
 
 ## Step 7.5 — Request Copilot Review
 
-After the PR is created, request GitHub Copilot as a reviewer for an automated first-pass review:
+After the PR is created, request GitHub Copilot review using the GitHub MCP tool:
 
-```bash
-gh pr edit {PR_NUMBER} --add-reviewer "@copilot"
+```
+GitHub MCP tool: request_copilot_review
+Parameters:
+  owner:      {OWNER}
+  repo:       {REPO}
+  pullNumber: {PR_NUMBER}
 ```
 
-> **Note:** If the `gh` CLI command fails (Copilot review not available on this repo), skip silently — this is optional. Report in the output summary whether Copilot review was requested.
+This triggers GitHub Copilot's automated code review on the PR.
+
+> **Note:** If the MCP call returns an error (e.g. Copilot review not enabled on this repo), skip silently and log `"Copilot review: not available"` in the output summary. Do NOT fall back to `gh` CLI — if MCP fails, report it as skipped.
 
 ---
 

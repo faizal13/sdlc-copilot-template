@@ -53,9 +53,20 @@ Explicitly targets PR number 123.
 ## Step 1 — Gather Comments
 
 Read all unresolved review comments on the current PR using GitHub MCP:
-- Use `get_pull_request_comments` to read inline code comments (file + line specific)
-- Use `get_pull_request_reviews` to read review-level comments
-- Also check `docs/reviews/{branch-name}-review.md` for AI review comments (from @local-reviewer)
+
+```
+GitHub MCP tool: pull_request_read
+Parameters: { method: "get_review_comments", owner: {OWNER}, repo: {REPO}, pullNumber: {PR_NUMBER}, perPage: 50 }
+```
+→ Returns inline code comments with file path, line number, and resolution status.
+
+```
+GitHub MCP tool: pull_request_read
+Parameters: { method: "get_reviews", owner: {OWNER}, repo: {REPO}, pullNumber: {PR_NUMBER} }
+```
+→ Returns review-level comments (overall review body, state: COMMENTED / CHANGES_REQUESTED / APPROVED).
+
+Also check `docs/reviews/{branch-name}-review.md` for AI review comments (from @local-reviewer).
 
 **Categorize each comment:**
 
@@ -180,40 +191,47 @@ If push fails:
 
 For each addressed comment, reply on the PR via GitHub MCP to close the feedback loop:
 
-### 6.1 — Reply to inline review comments
+### 6.1 — Reply to each inline review comment
 
-For each **fixed** comment, use `add_issue_comment` on the PR:
+For each inline review comment, use the GitHub MCP reply tool so the reply is threaded under the original comment:
 
 ```
-✅ Addressed in commit {SHORT_SHA}:
+GitHub MCP tool: add_reply_to_pull_request_comment
+Parameters:
+  owner:      {OWNER}
+  repo:       {REPO}
+  pullNumber: {PR_NUMBER}
+  commentId:  {comment.id from pull_request_read}
+  body:       {reply text below}
+```
 
-**Comment by @{reviewer}** on `{file}:{line}`:
-> "{original comment summary}"
+**Reply body per category:**
+
+For **fixed** comments:
+```
+✅ Addressed in commit {SHORT_SHA}
 
 **Fix applied:** {brief description of what was changed}
 ```
 
-For each **question/clarification** comment, reply with the explanation:
+For **question/clarification** comments:
 ```
-💬 Re: @{reviewer}'s question on `{file}:{line}`:
-> "{original comment}"
-
-{Your explanation}
+💬 {Your explanation answering the question}
 ```
 
-For each **flagged** comment, reply:
+For **flagged** comments:
 ```
-🚩 Flagged for manual review — @{reviewer}'s comment on `{file}:{line}` requires an architectural decision that is beyond automated fixing scope.
+🚩 This requires an architectural decision beyond automated fixing scope — flagged for manual developer review.
 ```
 
-For each **delegated** comment, reply:
+For **delegated** comments:
 ```
-🔄 This comment required significant changes and was delegated to @local-rakbank-dev-agent. Changes implemented in commit {SHORT_SHA}.
+🔄 This required significant changes and was delegated to @local-rakbank-dev-agent. Changes implemented in commit {SHORT_SHA}.
 ```
 
 ### 6.2 — Post a summary comment on the PR
 
-Use `add_issue_comment` to post a single summary:
+Use `add_issue_comment` to post a single top-level summary comment:
 
 ```markdown
 ## 🤖 @address-comments — Review Comments Addressed
@@ -235,13 +253,19 @@ Ready for re-review.
 
 ## Step 7 — Request Copilot Review
 
-After pushing fixes, request GitHub Copilot as a reviewer for a fresh automated review:
+After pushing fixes, request a fresh Copilot review using the GitHub MCP tool:
 
-```bash
-gh pr edit {PR_NUMBER} --add-reviewer "@copilot"
+```
+GitHub MCP tool: request_copilot_review
+Parameters:
+  owner:      {OWNER}
+  repo:       {REPO}
+  pullNumber: {PR_NUMBER}
 ```
 
-> **Note:** If the `gh` CLI command fails (Copilot review not available on this repo), skip silently — this is optional. Report in summary whether Copilot review was requested.
+This triggers a fresh GitHub Copilot automated review on the updated PR.
+
+> **Note:** If the MCP call returns an error (e.g. Copilot review not enabled on this repo), skip silently and log `"Copilot review: not available"` in the output summary. Do NOT fall back to `gh` CLI — if MCP fails, report it as skipped.
 
 ---
 
