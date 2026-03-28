@@ -38,6 +38,7 @@ Thumbs.db
 # Secrets & credentials
 # ──────────────────────────────────────────────
 .env
+*.notifications.env
 *.pem
 *.key
 *.p12

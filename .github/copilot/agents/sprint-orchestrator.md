@@ -252,10 +252,18 @@ Report to developer:
    Next: review the PR on GitHub. If comments, run: @address-comments
 ```
 
-**Step 4.7 — Update Status**
+**Step 4.7 — Update Status + Notify**
 After each story reaches PUBLISHED:
 - Update `sprintPlan/EPIC-{id}-sprint-status.md` — mark story as 🚀 PR CREATED with PR URL
 - Report progress: `🚀 {STORY-ID} — PR created. {remaining} stories left in Phase {N}.`
+- If this was the LAST story in the current phase, send a Teams notification:
+  ```bash
+  node .github/hooks/notify-teams.js phase-complete epic=EPIC-{id} phase={N} totalPhases={total} storiesDone={count} nextPhase={N+1}
+  ```
+- If a story is BLOCKED by a dependency, send a Teams notification:
+  ```bash
+  node .github/hooks/notify-teams.js story-blocked story={STORY-ID} blockedBy={dependency-story-ID} reason="{brief reason}"
+  ```
 - Move to the next READY story
 
 ### Mode 2: Remote Workflow

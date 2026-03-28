@@ -12,7 +12,7 @@
 | **17 Agents** | `@story-refiner`, `@api-architect`, `@test-architect`, `@sprint-orchestrator`, `@task-planner`, `@local-rakbank-dev-agent`, `@local-reviewer`, `@git-publisher`, `@local-instinct-learner`, `@story-analyzer`, `@rakbank-backend-dev-agent`, `@address-comments`, `@instinct-extractor`, `@eval-runner`, `@telemetry-collector`, `@tech-debt-planner`, `@context-architect` |
 | **4 Skills** | Auto-activated in Copilot Chat: context-map, what-context-needed, refactor-plan, instinct-lookup |
 | **8 Instructions** | Auto-applied to every Copilot interaction: coding, security, testing, review, cross-service, mcp-tools, middleware, agent-essentials |
-| **Node.js Hooks** | Session logger (start/stop/prompt tracking) + git post-commit AI usage tracker — Windows & macOS compatible |
+| **Node.js Hooks** | Session logger (start/stop/prompt tracking) + git post-commit AI usage tracker + Teams notifications — Windows & macOS compatible |
 | **Checkpoint System** | Phase-level recovery for long-running agents — never restart from scratch; completed runs preserved as learning history |
 | **Runtime dirs** | `taskPlan/`, `sprintPlan/`, `docs/epic-plans/`, `docs/api-specs/`, `docs/reviews/`, `docs/agent-telemetry/`, `evals/`, `.copilot/instincts/`, `.checkpoints/` |
 
@@ -478,6 +478,7 @@ To update a specific agent: delete the file from `.github/agents/` and re-run.
 ├── skills/                    ← Auto-activated context helpers (4 skills)
 ├── hooks/
 │   ├── session-logger.json    ← Claude Code hooks config (SessionStart/Stop/UserPromptSubmit)
+│   ├── notify-teams.js        ← Teams Incoming Webhook notifications (zero auth)
 │   └── session-logger/        ← Node.js scripts (cross-platform: Windows + macOS)
 │       ├── log-session-start.js
 │       ├── log-session-end.js

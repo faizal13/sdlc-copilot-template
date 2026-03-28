@@ -350,6 +350,16 @@ Append to `docs/project-changelog.md`:
 {if delegated: "- **Dev agent handoff:** {count} comments required significant changes"}
 ````
 
+### 8c — Send Teams Notification (MANDATORY)
+
+After telemetry and changelog, send a Teams notification:
+
+```bash
+node .github/hooks/notify-teams.js comments-resolved pr=#{PR_NUMBER} branch={BRANCH} fixed={count} replied={count} delegated={count} flagged={count}
+```
+
+> If the command fails or `notify-teams.js` is not found, skip silently — notifications are optional.
+
 ---
 
 ## Agent Behavior Rules

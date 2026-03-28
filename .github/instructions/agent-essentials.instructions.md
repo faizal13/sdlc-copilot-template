@@ -50,3 +50,13 @@ Every agent MUST append to these files before reporting completion:
 - **PII**: Never log customer PII (name, Emirates ID, account number) at INFO level
 - **Audit**: All state transitions must be auditable
 - **Data isolation**: Personas can only see data they are authorized for (check `user-personas.md`)
+
+### 5. Teams Notifications (When Applicable)
+
+Agents that produce key events (PR created, review verdict, comments resolved, phase complete, story blocked) should send a Teams notification via:
+
+```bash
+node .github/hooks/notify-teams.js <type> [key=value ...]
+```
+
+See `contexts/notifications.md` for setup and usage. Notifications are optional — if the script is missing or no webhook is configured, the call silently exits. Never let a notification failure block agent execution.

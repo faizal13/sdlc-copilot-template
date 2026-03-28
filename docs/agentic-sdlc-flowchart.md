@@ -610,6 +610,7 @@ Both workflows converge at the **Human Gate** — your engineering judgment is a
 | PR comment fixes not pushed | @address-comments now commits + pushes fixes + replies on GitHub + requests Copilot re-review | @address-comments — Steps 4-7 |
 | Large PR comments need dev agent | Comments requiring ≥50 lines changed auto-delegated to @local-rakbank-dev-agent via `agent` tool | @address-comments — Step 2.5 |
 | No automated first-pass PR review | @git-publisher and @address-comments request GitHub Copilot as reviewer after push | @git-publisher Step 7.5, @address-comments Step 7 |
+| No team visibility into agent events | Teams Incoming Webhook notifications — PR created, review verdict, comments resolved, phase complete, story blocked | notify-teams.js + 4 agents |
 
 ---
 
@@ -663,6 +664,7 @@ Three guards prevent any infinite loop:
 ├── hooks/
 │   ├── session-logger.json              ← Claude Code hooks config
 │   │                                       Events: SessionStart, Stop, UserPromptSubmit
+│   ├── notify-teams.js                  ← Teams Incoming Webhook notifications (zero auth)
 │   └── session-logger/                  ← Node.js scripts (Windows + macOS)
 │       ├── log-session-start.js
 │       ├── log-session-end.js
