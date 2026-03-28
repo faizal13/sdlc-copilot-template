@@ -5,12 +5,13 @@
 #  Sourced by install.sh. Never run directly.
 #
 #  Installs:
-#    - All 14 agents                → .github/agents/*.agent.md
-#    - Auto-instructions (6)        → .github/instructions/*.instructions.md
+#    - All 17 agents                → .github/agents/*.agent.md
+#    - Auto-instructions (8)        → .github/instructions/*.instructions.md
 #    - Instruction examples (4)     → .github/instructions/examples/
 #    - VS Code skills (4)           → .github/skills/{name}/SKILL.md
 #    - Copilot session logger hooks → .github/hooks/session-logger/ (.sh + .js)
 #    - Claude Code hooks registry   → .github/hooks/session-logger.json
+#    - Teams notification helper    → .github/hooks/notify-teams.js
 #    - Git post-commit AI usage hook→ .github/hooks/git/
 #    - Runtime directories + README → contexts/, docs/, evals/, .copilot/, etc.
 #
@@ -28,7 +29,7 @@ install_core() {
   print_section "Agents  →  .github/agents/*.agent.md"
   mkdir -p "$TARGET_DIR/.github/agents"
 
-  # Copy all 14 agents from template .github/copilot/agents/*.md
+  # Copy all 17 agents from template .github/copilot/agents/*.md
   # to target .github/agents/*.agent.md (correct VS Code path)
   for agent_file in "$TEMPLATE_ROOT/.github/copilot/agents/"*.md; do
     if [ -f "$agent_file" ]; then
@@ -117,6 +118,12 @@ install_core() {
               "$TARGET_DIR/.github/hooks/session-logger.json"
   fi
 
+  # Teams notification helper (zero-auth webhook — agents call via execute tool)
+  if [ -f "$TEMPLATE_ROOT/.github/hooks/notify-teams.js" ]; then
+    copy_executable "$TEMPLATE_ROOT/.github/hooks/notify-teams.js" \
+                    "$TARGET_DIR/.github/hooks/notify-teams.js"
+  fi
+
   # Git post-commit hook (AI usage auto-logger)
   mkdir -p "$TARGET_DIR/.github/hooks/git"
   if [ -f "$TEMPLATE_ROOT/.github/hooks/git/post-commit" ]; then
@@ -197,6 +204,24 @@ CTXEOF
     echo "  [add]  contexts/README.md"
   else
     echo "  [skip] contexts/README.md"
+  fi
+
+  # Copy template context files (banking, flowable, notifications)
+  for ctx_file in "$TEMPLATE_ROOT/contexts/"*.md; do
+    if [ -f "$ctx_file" ]; then
+      local ctx_fname
+      ctx_fname=$(basename "$ctx_file")
+      [ "$ctx_fname" = "README.md" ] && continue    # already created above
+      copy_file "$ctx_file" "$TARGET_DIR/contexts/$ctx_fname"
+    fi
+  done
+  # Copy context examples directory if it exists
+  if [ -d "$TEMPLATE_ROOT/contexts/examples" ]; then
+    mkdir -p "$TARGET_DIR/contexts/examples"
+    for ex_file in "$TEMPLATE_ROOT/contexts/examples/"*; do
+      [ -f "$ex_file" ] && copy_file "$ex_file" \
+        "$TARGET_DIR/contexts/examples/$(basename "$ex_file")"
+    done
   fi
 
   # ── docs/solution-design/ ─────────────────────────────────────────────────
@@ -514,13 +539,15 @@ FBEOF
   local gitignore_path="$TARGET_DIR/.gitignore"
   local needs_checkpoint=true
   local needs_logs=true
+  local needs_notifications=true
 
   if [ -f "$gitignore_path" ]; then
     grep -q '\.checkpoints/\*\.json' "$gitignore_path" 2>/dev/null && needs_checkpoint=false
     grep -q 'logs/copilot/' "$gitignore_path" 2>/dev/null && needs_logs=false
+    grep -q 'notifications\.env' "$gitignore_path" 2>/dev/null && needs_notifications=false
   fi
 
-  if [ "$needs_checkpoint" = true ] || [ "$needs_logs" = true ]; then
+  if [ "$needs_checkpoint" = true ] || [ "$needs_logs" = true ] || [ "$needs_notifications" = true ]; then
     {
       echo ""
       echo "# Agent runtime files — not committed"
@@ -529,6 +556,9 @@ FBEOF
       fi
       if [ "$needs_logs" = true ]; then
         echo "logs/copilot/"
+      fi
+      if [ "$needs_notifications" = true ]; then
+        echo "*.notifications.env"
       fi
     } >> "$gitignore_path"
     echo "  [add]  .gitignore (runtime ignore rules)"
