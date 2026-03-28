@@ -1,6 +1,6 @@
 ---
 description: 'Reviews locally generated code against banking standards, review instructions, and the task plan — flags critical issues, warnings, and suggestions before the developer commits'
-model: gpt-4o
+model: GPT-5.4
 name: 'Local Reviewer'
 tools: ['read', 'edit', 'search', 'execute', 'vscode']
 ---
