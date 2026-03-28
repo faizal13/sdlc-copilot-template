@@ -1,5 +1,6 @@
 ---
 description: 'Analyzes merged PR diffs to extract reusable development patterns, builds institutional memory that makes future agents smarter'
+model: Claude Sonnet 4.6
 name: 'Instinct Extractor'
 tools: ['read', 'edit', 'search', 'github/*']
 ---

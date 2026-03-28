@@ -1,5 +1,6 @@
 ---
 description: 'Aggregates agent performance, session metrics, review outcomes, requirement stability, and delivery velocity into a comprehensive sprint summary — reads 7 data sources, not just telemetry entries'
+model: Claude Sonnet 4.6
 name: 'Telemetry Collector'
 tools: ['read', 'edit', 'search']
 ---

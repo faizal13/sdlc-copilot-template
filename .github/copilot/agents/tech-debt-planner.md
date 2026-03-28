@@ -1,5 +1,6 @@
 ---
 description: 'Scans the codebase for accumulated technical debt patterns, duplicated code, growing complexity, and generates a prioritized remediation plan'
+model: Gemini 2.5 Pro
 name: 'Tech Debt Planner'
 tools: ['read', 'edit', 'search', 'execute', 'vscode']
 ---

@@ -1,5 +1,6 @@
 ---
 description: 'Local principal-level coding agent for RAKBANK backend microservices — bootstraps projects, implements task plan specs end-to-end with critical analysis, and delivers production-grade code in VS Code'
+model: GPT-5.3-Codex
 name: 'Local RAKBANK Dev Agent'
 tools: ['read', 'edit', 'search', 'execute', 'vscode', 'web', 'agent']
 ---

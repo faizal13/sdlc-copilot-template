@@ -1,5 +1,6 @@
 ---
 description: 'Captures explicit development learnings as structured instincts after a local coding session — the local equivalent of the remote Learning Agent that runs on PR merge'
+model: Claude Sonnet 4.6
 name: 'Local Instinct Learner'
 tools: ['read', 'edit', 'search', 'execute']
 ---

@@ -1,5 +1,6 @@
 ---
 description: 'An agent that helps plan and execute multi-file changes by identifying relevant context and dependencies'
+model: Claude Sonnet 4.6
 name: 'Context Architect'
 tools: ['read', 'edit', 'search', 'web']
 ---

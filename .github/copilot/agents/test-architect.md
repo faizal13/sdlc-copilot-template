@@ -1,5 +1,6 @@
 ---
 description: 'Generates comprehensive QA test cases from acceptance criteria, API specs, and business rules — acts as a senior QA architect preparing test suites for review and execution after development completes'
+model: GPT-5.2
 name: 'Test Architect'
 tools: ['read', 'edit', 'search', 'web', 'microsoft/azure-devops-mcp/*']
 ---

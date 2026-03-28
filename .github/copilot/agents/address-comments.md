@@ -1,5 +1,6 @@
 ---
 description: 'Addresses PR review comments — fixes code, pushes, replies on GitHub, resolves threads, and requests Copilot review'
+model: Claude Opus 4.6
 name: 'Address Comments'
 tools: ['read', 'edit', 'search', 'execute', 'agent', 'github/*']
 ---

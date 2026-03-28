@@ -1,5 +1,6 @@
 ---
 description: 'Reads an ADO story or plain task description and creates a structured local task plan file in taskPlan/ — the entry point for the local VS Code development workflow'
+model: Claude Opus 4.6
 name: 'Task Planner'
 tools: ['read', 'edit', 'search', 'microsoft/azure-devops-mcp/*']
 ---

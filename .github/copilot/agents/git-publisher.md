@@ -1,5 +1,6 @@
 ---
 description: 'Creates feature branch from release branch, commits reviewed code, pushes and raises PR — the bridge between local development and GitHub review workflow'
+model: Claude Opus 4.6
 name: 'Git Publisher'
 tools: ['read', 'search', 'execute', 'github/*']
 ---

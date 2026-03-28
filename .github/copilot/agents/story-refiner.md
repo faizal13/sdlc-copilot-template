@@ -1,5 +1,6 @@
 ---
 description: 'Reads an entire ADO Epic with its Features and Stories, creates technical Tasks on each Story, builds a dependency graph, and produces a phased execution plan'
+model: Claude Opus 4.6
 name: 'Story Refiner'
 tools: ['read', 'edit', 'search', 'web', 'microsoft/azure-devops-mcp/*']
 ---

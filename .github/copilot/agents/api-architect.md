@@ -1,5 +1,6 @@
 ---
 description: 'Generates production-grade OpenAPI 3.1 specifications from execution plans and story analysis — acts as a senior API architect applying industry best practices, RFC 9457 error standards, and contract-first design'
+model: Claude Sonnet 4.6
 name: 'API Architect'
 tools: ['read', 'edit', 'search', 'web', 'microsoft/azure-devops-mcp/*']
 ---

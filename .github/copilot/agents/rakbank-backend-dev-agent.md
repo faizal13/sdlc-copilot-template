@@ -1,5 +1,6 @@
 ---
 description: 'Autonomous principal-level coding agent for RAKBANK backend microservices — bootstraps projects, implements GitHub Issue specs end-to-end with critical analysis, and delivers production-grade code in one pass'
+model: GPT-5.3-Codex
 name: 'RAKBANK Backend Dev Agent'
 tools: ['read', 'edit', 'search', 'execute', 'vscode', 'web', 'agent', 'github/*']
 ---

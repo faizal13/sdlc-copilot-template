@@ -1,5 +1,6 @@
 ---
 description: 'Reads a single ADO story via MCP, scans the codebase for existing implementations, cross-references against solution design and execution plan, and creates a precise GitHub Issue that the coding agent can act on autonomously'
+model: Claude Sonnet 4.6
 name: 'Story Analyzer'
 tools: ['read', 'edit', 'search', 'web', 'agent', 'microsoft/azure-devops-mcp/*', 'github/*']
 ---

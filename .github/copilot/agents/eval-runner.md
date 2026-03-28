@@ -1,5 +1,6 @@
 ---
 description: 'Evaluates agent outputs against golden references using a structured scoring rubric — measures completeness, precision, standards compliance, and actionability'
+model: GPT-5.2
 name: 'Eval Runner'
 tools: ['read', 'edit', 'search', 'execute']
 ---
