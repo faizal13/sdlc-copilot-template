@@ -487,6 +487,30 @@ Append an entry to `docs/project-changelog.md`. **Never edit previous entries �
 
 ---
 
+## Completion Notification Protocol
+
+**MANDATORY** — Before returning your final response to the user, ALWAYS send a Teams notification using the `execute` tool:
+
+**On successful completion:**
+```bash
+node .github/hooks/notify-teams.js agent-complete agent=@sprint-orchestrator story={STORY-ID} status=success summary="{one-line summary of what was done}"
+```
+
+**On error or failure:**
+```bash
+node .github/hooks/notify-teams.js agent-error agent=@sprint-orchestrator story={STORY-ID} error="{brief error description}"
+```
+
+**When human input or decision is needed:**
+```bash
+node .github/hooks/notify-teams.js agent-waiting agent=@sprint-orchestrator story={STORY-ID} reason="{what input is needed from the user}"
+```
+
+> If `notify-teams.js` is not found or the command fails, skip silently — notifications are optional and must never block your workflow.
+> Replace `{STORY-ID}` with the actual story ID from context, or use `N/A` if not applicable.
+
+---
+
 ## Behavior Rules
 
 ### Error Handling

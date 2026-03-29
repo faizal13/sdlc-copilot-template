@@ -1,0 +1,56 @@
+{
+  "name": "copilot-watchdog",
+  "displayName": "Copilot Watchdog — Teams Notifications",
+  "description": "Monitors Copilot agent sessions and sends Teams notifications for idle/error/completion states",
+  "version": "0.1.0",
+  "publisher": "rakbank-sdlc",
+  "engines": { "vscode": "^1.85.0" },
+  "categories": ["Other"],
+  "activationEvents": ["onStartupFinished"],
+  "main": "./extension.js",
+  "contributes": {
+    "configuration": {
+      "title": "Copilot Watchdog",
+      "properties": {
+        "copilotWatchdog.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable/disable the Copilot Watchdog"
+        },
+        "copilotWatchdog.idleTimeoutMinutes": {
+          "type": "number",
+          "default": 10,
+          "description": "Minutes of inactivity before sending a notification"
+        },
+        "copilotWatchdog.teamsNotifications": {
+          "type": "boolean",
+          "default": true,
+          "description": "Send Teams webhook notifications (requires TEAMS_WEBHOOK_URL)"
+        },
+        "copilotWatchdog.desktopNotifications": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show VS Code desktop notifications"
+        }
+      }
+    },
+    "commands": [
+      {
+        "command": "copilotWatchdog.enable",
+        "title": "Copilot Watchdog: Enable"
+      },
+      {
+        "command": "copilotWatchdog.disable",
+        "title": "Copilot Watchdog: Disable"
+      },
+      {
+        "command": "copilotWatchdog.status",
+        "title": "Copilot Watchdog: Show Status"
+      },
+      {
+        "command": "copilotWatchdog.test",
+        "title": "Copilot Watchdog: Send Test Notification"
+      }
+    ]
+  }
+}

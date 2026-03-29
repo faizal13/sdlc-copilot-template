@@ -133,6 +133,12 @@ function buildCard() {
       return phaseCompleteCard();
     case 'story-blocked':
       return storyBlockedCard();
+    case 'agent-complete':
+      return agentCompleteCard();
+    case 'agent-error':
+      return agentErrorCard();
+    case 'agent-waiting':
+      return agentWaitingCard();
     case 'custom':
       return customCard();
     default:
@@ -249,6 +255,60 @@ function storyBlockedCard() {
         ]
       },
       { type: 'TextBlock', text: `_@sprint-orchestrator \u2022 ${new Date().toISOString().slice(0, 16).replace('T', ' ')}_`, isSubtle: true, size: 'Small' },
+    ],
+  };
+}
+
+function agentCompleteCard() {
+  return {
+    type: 'AdaptiveCard', version: '1.4',
+    body: [
+      { type: 'TextBlock', text: 'Agent Task Complete', size: 'Large', weight: 'Bolder', color: 'Good' },
+      {
+        type: 'FactSet', facts: [
+          { title: 'Agent', value: params.agent || 'N/A' },
+          { title: 'Story', value: params.story || 'N/A' },
+          { title: 'Status', value: params.status || 'success' },
+          { title: 'Summary', value: params.summary || 'Task completed successfully' },
+        ]
+      },
+      { type: 'TextBlock', text: `_copilot-watchdog \u2022 ${new Date().toISOString().slice(0, 16).replace('T', ' ')}_`, isSubtle: true, size: 'Small' },
+    ],
+  };
+}
+
+function agentErrorCard() {
+  return {
+    type: 'AdaptiveCard', version: '1.4',
+    body: [
+      { type: 'TextBlock', text: 'Agent Error \u2014 Needs Attention', size: 'Large', weight: 'Bolder', color: 'Attention' },
+      {
+        type: 'FactSet', facts: [
+          { title: 'Agent', value: params.agent || 'N/A' },
+          { title: 'Story', value: params.story || 'N/A' },
+          { title: 'Error', value: params.error || 'Unknown error' },
+        ]
+      },
+      { type: 'TextBlock', text: 'Check VS Code for details. The agent may need to be re-run.', wrap: true },
+      { type: 'TextBlock', text: `_copilot-watchdog \u2022 ${new Date().toISOString().slice(0, 16).replace('T', ' ')}_`, isSubtle: true, size: 'Small' },
+    ],
+  };
+}
+
+function agentWaitingCard() {
+  return {
+    type: 'AdaptiveCard', version: '1.4',
+    body: [
+      { type: 'TextBlock', text: 'Agent Waiting \u2014 Human Input Needed', size: 'Large', weight: 'Bolder', color: 'Warning' },
+      {
+        type: 'FactSet', facts: [
+          { title: 'Agent', value: params.agent || 'N/A' },
+          { title: 'Story', value: params.story || 'N/A' },
+          { title: 'Reason', value: params.reason || 'Agent needs your input' },
+        ]
+      },
+      { type: 'TextBlock', text: 'Open VS Code to respond to the agent.', wrap: true },
+      { type: 'TextBlock', text: `_copilot-watchdog \u2022 ${new Date().toISOString().slice(0, 16).replace('T', ' ')}_`, isSubtle: true, size: 'Small' },
     ],
   };
 }
