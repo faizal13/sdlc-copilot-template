@@ -35,6 +35,7 @@
 
 const https = require('https');
 const http = require('http');
+const tls = require('tls');
 const fs = require('fs');
 const path = require('path');
 
@@ -63,17 +64,43 @@ function resolveWebhookUrl() {
   // 2. Environment variable
   if (process.env.TEAMS_WEBHOOK_URL) return process.env.TEAMS_WEBHOOK_URL;
 
-  // 3. .notifications.env file (walk up from cwd to find project root)
-  const candidates = [
-    path.join(process.cwd(), '.notifications.env'),
-    path.join(process.cwd(), '..', '.notifications.env'),
-    path.join(process.cwd(), '..', '..', '.notifications.env'),
-  ];
+  // 3. .notifications.env / .notification.env file (walk up from cwd to find project root)
+  const roots = [process.cwd(), path.join(process.cwd(), '..'), path.join(process.cwd(), '..', '..')];
+  const envNames = ['.notifications.env', '.notification.env'];
+  const candidates = roots.flatMap(r => envNames.map(n => path.join(r, n)));
 
   for (const candidate of candidates) {
     try {
       const content = fs.readFileSync(candidate, 'utf8');
       const match = content.match(/^TEAMS_WEBHOOK_URL=(.+)$/m);
+      if (match) return match[1].trim();
+    } catch (_) {
+      // File not found — try next
+    }
+  }
+
+  return null;
+}
+
+// ─── Resolve proxy URL ───────────────────────────────────────────────────────
+function resolveProxyUrl() {
+  // 1. Explicit argument
+  if (params.proxy) return params.proxy;
+
+  // 2. Standard proxy environment variables
+  const fromEnv = process.env.HTTPS_PROXY || process.env.https_proxy
+    || process.env.HTTP_PROXY || process.env.http_proxy;
+  if (fromEnv) return fromEnv;
+
+  // 3. .notifications.env / .notification.env file
+  const roots = [process.cwd(), path.join(process.cwd(), '..'), path.join(process.cwd(), '..', '..')];
+  const envNames = ['.notifications.env', '.notification.env'];
+  const candidates = roots.flatMap(r => envNames.map(n => path.join(r, n)));
+
+  for (const candidate of candidates) {
+    try {
+      const content = fs.readFileSync(candidate, 'utf8');
+      const match = content.match(/^HTTPS_PROXY=(.+)$/m);
       if (match) return match[1].trim();
     } catch (_) {
       // File not found — try next
@@ -118,12 +145,14 @@ function prCreatedCard() {
     type: 'AdaptiveCard', version: '1.4',
     body: [
       { type: 'TextBlock', text: '\u{1F680} PR Created', size: 'Large', weight: 'Bolder', color: 'Good' },
-      { type: 'FactSet', facts: [
-        { title: 'Story', value: params.story || 'N/A' },
-        { title: 'Service', value: params.service || 'N/A' },
-        { title: 'Branch', value: params.branch || 'N/A' },
-        { title: 'Target', value: params.target || 'N/A' },
-      ].filter(f => f.value !== 'N/A') },
+      {
+        type: 'FactSet', facts: [
+          { title: 'Story', value: params.story || 'N/A' },
+          { title: 'Service', value: params.service || 'N/A' },
+          { title: 'Branch', value: params.branch || 'N/A' },
+          { title: 'Target', value: params.target || 'N/A' },
+        ].filter(f => f.value !== 'N/A')
+      },
       params.pr ? { type: 'TextBlock', text: `[View Pull Request](${params.pr})`, wrap: true } : null,
       { type: 'TextBlock', text: `_@git-publisher \u2022 ${new Date().toISOString().slice(0, 16).replace('T', ' ')}_`, isSubtle: true, size: 'Small' },
     ].filter(Boolean),
@@ -135,13 +164,15 @@ function reviewReadyCard() {
     type: 'AdaptiveCard', version: '1.4',
     body: [
       { type: 'TextBlock', text: '\u2705 Review Passed — READY TO COMMIT', size: 'Large', weight: 'Bolder', color: 'Good' },
-      { type: 'FactSet', facts: [
-        { title: 'Story', value: params.story || 'N/A' },
-        { title: 'Service', value: params.service || 'N/A' },
-        { title: 'Critical', value: params.critical || '0' },
-        { title: 'Warnings', value: params.warnings || '0' },
-        { title: 'Suggestions', value: params.suggestions || '0' },
-      ] },
+      {
+        type: 'FactSet', facts: [
+          { title: 'Story', value: params.story || 'N/A' },
+          { title: 'Service', value: params.service || 'N/A' },
+          { title: 'Critical', value: params.critical || '0' },
+          { title: 'Warnings', value: params.warnings || '0' },
+          { title: 'Suggestions', value: params.suggestions || '0' },
+        ]
+      },
       { type: 'TextBlock', text: 'Next: `@git-publisher` to create PR or `@instinct-extractor` to capture patterns.', wrap: true },
       { type: 'TextBlock', text: `_@local-reviewer \u2022 ${new Date().toISOString().slice(0, 16).replace('T', ' ')}_`, isSubtle: true, size: 'Small' },
     ],
@@ -153,11 +184,13 @@ function reviewBlockedCard() {
     type: 'AdaptiveCard', version: '1.4',
     body: [
       { type: 'TextBlock', text: '\u{1F6D1} Review BLOCKED', size: 'Large', weight: 'Bolder', color: 'Attention' },
-      { type: 'FactSet', facts: [
-        { title: 'Story', value: params.story || 'N/A' },
-        { title: 'Service', value: params.service || 'N/A' },
-        { title: 'Critical Issues', value: params.critical || '?' },
-      ] },
+      {
+        type: 'FactSet', facts: [
+          { title: 'Story', value: params.story || 'N/A' },
+          { title: 'Service', value: params.service || 'N/A' },
+          { title: 'Critical Issues', value: params.critical || '?' },
+        ]
+      },
       params.findings ? { type: 'TextBlock', text: `**Findings:** ${params.findings}`, wrap: true } : null,
       { type: 'TextBlock', text: 'Fix critical issues and re-run `@local-reviewer`.', wrap: true },
       { type: 'TextBlock', text: `_@local-reviewer \u2022 ${new Date().toISOString().slice(0, 16).replace('T', ' ')}_`, isSubtle: true, size: 'Small' },
@@ -170,14 +203,16 @@ function commentsResolvedCard() {
     type: 'AdaptiveCard', version: '1.4',
     body: [
       { type: 'TextBlock', text: '\u{1F4AC} PR Comments Addressed', size: 'Large', weight: 'Bolder', color: 'Good' },
-      { type: 'FactSet', facts: [
-        { title: 'PR', value: params.pr || 'N/A' },
-        { title: 'Branch', value: params.branch || 'N/A' },
-        { title: 'Fixed', value: params.fixed || '0' },
-        { title: 'Replied', value: params.replied || '0' },
-        { title: 'Delegated', value: params.delegated || '0' },
-        { title: 'Flagged', value: params.flagged || '0' },
-      ] },
+      {
+        type: 'FactSet', facts: [
+          { title: 'PR', value: params.pr || 'N/A' },
+          { title: 'Branch', value: params.branch || 'N/A' },
+          { title: 'Fixed', value: params.fixed || '0' },
+          { title: 'Replied', value: params.replied || '0' },
+          { title: 'Delegated', value: params.delegated || '0' },
+          { title: 'Flagged', value: params.flagged || '0' },
+        ]
+      },
       { type: 'TextBlock', text: 'Fixes pushed. Copilot re-review requested. Ready for human re-review.', wrap: true },
       { type: 'TextBlock', text: `_@address-comments \u2022 ${new Date().toISOString().slice(0, 16).replace('T', ' ')}_`, isSubtle: true, size: 'Small' },
     ],
@@ -189,11 +224,13 @@ function phaseCompleteCard() {
     type: 'AdaptiveCard', version: '1.4',
     body: [
       { type: 'TextBlock', text: `\u{1F3C1} Phase ${params.phase || '?'} of ${params.totalPhases || '?'} Complete`, size: 'Large', weight: 'Bolder', color: 'Good' },
-      { type: 'FactSet', facts: [
-        { title: 'Epic', value: params.epic || 'N/A' },
-        { title: 'Stories Delivered', value: params.storiesDone || '?' },
-        { title: 'Next Phase', value: params.nextPhase || 'N/A' },
-      ] },
+      {
+        type: 'FactSet', facts: [
+          { title: 'Epic', value: params.epic || 'N/A' },
+          { title: 'Stories Delivered', value: params.storiesDone || '?' },
+          { title: 'Next Phase', value: params.nextPhase || 'N/A' },
+        ]
+      },
       { type: 'TextBlock', text: `_@sprint-orchestrator \u2022 ${new Date().toISOString().slice(0, 16).replace('T', ' ')}_`, isSubtle: true, size: 'Small' },
     ],
   };
@@ -204,11 +241,13 @@ function storyBlockedCard() {
     type: 'AdaptiveCard', version: '1.4',
     body: [
       { type: 'TextBlock', text: '\u{1F6A8} Story Blocked', size: 'Large', weight: 'Bolder', color: 'Attention' },
-      { type: 'FactSet', facts: [
-        { title: 'Story', value: params.story || 'N/A' },
-        { title: 'Blocked By', value: params.blockedBy || 'N/A' },
-        { title: 'Reason', value: params.reason || 'N/A' },
-      ] },
+      {
+        type: 'FactSet', facts: [
+          { title: 'Story', value: params.story || 'N/A' },
+          { title: 'Blocked By', value: params.blockedBy || 'N/A' },
+          { title: 'Reason', value: params.reason || 'N/A' },
+        ]
+      },
       { type: 'TextBlock', text: `_@sprint-orchestrator \u2022 ${new Date().toISOString().slice(0, 16).replace('T', ' ')}_`, isSubtle: true, size: 'Small' },
     ],
   };
@@ -238,41 +277,116 @@ const payload = JSON.stringify({
   }],
 });
 
-const url = new URL(webhookUrl);
-const transport = url.protocol === 'https:' ? https : http;
+const targetUrl = new URL(webhookUrl);
+const proxyUrl = resolveProxyUrl();
 
-const req = transport.request(
-  {
-    hostname: url.hostname,
-    port: url.port,
-    path: url.pathname + url.search,
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Content-Length': Buffer.byteLength(payload),
-    },
+if (proxyUrl) {
+  // ── Route HTTPS through corporate proxy via HTTP CONNECT tunnel ──────────
+  const proxy = new URL(proxyUrl);
+  const targetPort = targetUrl.port || 443;
+
+  const connectReq = http.request({
+    hostname: proxy.hostname,
+    port: parseInt(proxy.port, 10) || 8080,
+    method: 'CONNECT',
+    path: `${targetUrl.hostname}:${targetPort}`,
+    headers: { 'Host': `${targetUrl.hostname}:${targetPort}`, 'Proxy-Connection': 'keep-alive' },
     timeout: 10000,
-  },
-  (res) => {
-    // Drain response
-    res.resume();
-    if (res.statusCode >= 200 && res.statusCode < 300) {
-      // Success — silent
-    } else {
-      console.error(`Teams webhook returned ${res.statusCode}`);
+  });
+
+  connectReq.on('connect', (res, socket) => {
+    if (res.statusCode !== 200) {
+      console.error(`Proxy CONNECT failed: ${res.statusCode}`);
+      return;
     }
-  },
-);
 
-req.on('error', (err) => {
-  // Fire and forget — never break the agent flow
-  console.error(`Teams notification failed: ${err.message}`);
-});
+    const tlsSocket = tls.connect({
+      socket,
+      servername: targetUrl.hostname,
+      rejectUnauthorized: true,
+    });
 
-req.on('timeout', () => {
-  req.destroy();
-  console.error('Teams notification timed out');
-});
+    tlsSocket.on('secureConnect', () => {
+      const requestLine = `POST ${targetUrl.pathname}${targetUrl.search} HTTP/1.1\r\n`;
+      const headers = [
+        `Host: ${targetUrl.hostname}`,
+        `Content-Type: application/json`,
+        `Content-Length: ${Buffer.byteLength(payload)}`,
+        `Connection: close`,
+      ].join('\r\n');
+      tlsSocket.write(`${requestLine}${headers}\r\n\r\n${payload}`);
 
-req.write(payload);
-req.end();
+      let responseData = '';
+      tlsSocket.on('data', (chunk) => { responseData += chunk.toString(); });
+      tlsSocket.on('end', () => {
+        const statusLine = responseData.split('\r\n')[0] || '';
+        const statusCode = parseInt(statusLine.split(' ')[1], 10);
+        if (!statusCode || (statusCode >= 200 && statusCode < 300)) {
+          // Success — silent
+        } else {
+          console.error(`Teams webhook returned ${statusCode}`);
+        }
+      });
+    });
+
+    tlsSocket.on('error', (err) => {
+      console.error(`Teams notification failed (proxy TLS): ${err.message}`);
+    });
+
+    tlsSocket.on('timeout', () => {
+      tlsSocket.destroy();
+      console.error('Teams notification timed out (proxy TLS)');
+    });
+
+    tlsSocket.setTimeout(10000);
+  });
+
+  connectReq.on('error', (err) => {
+    console.error(`Teams notification failed (proxy CONNECT): ${err.message}`);
+  });
+
+  connectReq.on('timeout', () => {
+    connectReq.destroy();
+    console.error('Teams notification timed out (proxy CONNECT)');
+  });
+
+  connectReq.end();
+
+} else {
+  // ── Direct connection ─────────────────────────────────────────────────────
+  const transport = targetUrl.protocol === 'https:' ? https : http;
+
+  const req = transport.request(
+    {
+      hostname: targetUrl.hostname,
+      port: targetUrl.port,
+      path: targetUrl.pathname + targetUrl.search,
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(payload),
+      },
+      timeout: 10000,
+    },
+    (res) => {
+      res.resume();
+      if (res.statusCode >= 200 && res.statusCode < 300) {
+        // Success — silent
+      } else {
+        console.error(`Teams webhook returned ${res.statusCode}`);
+      }
+    },
+  );
+
+  req.on('error', (err) => {
+    console.error(`Teams notification failed: ${err.message}`);
+  });
+
+  req.on('timeout', () => {
+    req.destroy();
+    console.error('Teams notification timed out');
+  });
+
+  req.write(payload);
+  req.end();
+}
