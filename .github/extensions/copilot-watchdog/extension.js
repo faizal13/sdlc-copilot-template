@@ -80,10 +80,18 @@ function getConfig() {
 
 function getWorkspaceRoot() {
   const folders = vscode.workspace.workspaceFolders;
-  if (folders && folders.length > 0) {
-    return folders[0].uri.fsPath;
+  if (!folders || folders.length === 0) return undefined;
+
+  // In a multi-root workspace, find the folder that contains .github/hooks/notify-teams.js
+  for (const folder of folders) {
+    const candidate = path.join(folder.uri.fsPath, '.github', 'hooks', 'notify-teams.js');
+    try {
+      if (fs.existsSync(candidate)) return folder.uri.fsPath;
+    } catch (_) { /* ignore */ }
   }
-  return undefined;
+
+  // Fallback: first folder
+  return folders[0].uri.fsPath;
 }
 
 function log(message) {
