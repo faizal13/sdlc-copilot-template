@@ -1,0 +1,29 @@
+# GitHub Labels — Change Impact Tracking
+#
+# These labels trigger Agent 7 (Change Impact Analysis) via
+# .github/workflows/agent7-change-impact.yml
+#
+# Apply to GitHub Issues when a requirement change, design miss,
+# security gap, or architecture fix is discovered mid-sprint.
+#
+# Usage:
+#   gh label create "design-miss" --color "e11d48" --description "Solution design miss discovered post-implementation"
+#   gh label create "requirement-change" --color "f59e0b" --description "Business requirement changed (BA-initiated)"
+#   gh label create "security-gap" --color "dc2626" --description "Security vulnerability or gap identified"
+#   gh label create "arch-fix" --color "8b5cf6" --description "Architecture correction needed"
+
+- name: design-miss
+  color: "e11d48"
+  description: "Solution design miss discovered post-implementation"
+
+- name: requirement-change
+  color: "f59e0b"
+  description: "Business requirement changed (BA-initiated)"
+
+- name: security-gap
+  color: "dc2626"
+  description: "Security vulnerability or gap identified"
+
+- name: arch-fix
+  color: "8b5cf6"
+  description: "Architecture correction needed"
