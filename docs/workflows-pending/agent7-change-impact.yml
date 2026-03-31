@@ -1,0 +1,159 @@
+name: "Agent 7 — Change Impact Analysis"
+
+# Triggers when a GitHub Issue is labeled with change-tracking labels.
+# These labels are added either:
+#   1. Manually by architect/dev/QA when they discover a design miss or gap
+#   2. Automatically by Agent 6 (ADO Sync) when ADO story content changes
+#
+# This workflow reads the issue context and runs @change-impact-agent
+# to classify the change (ADDITIVE / CORRECTIVE / BREAKING) and produce
+# a delta task plan that downstream agents consume to correct course.
+#
+# Labels that trigger this workflow:
+#   design-miss         — solution design miss discovered post-implementation
+#   requirement-change  — business requirement changed (BA-initiated via ADO)
+#   security-gap        — security vulnerability or gap identified
+#   arch-fix            — architecture correction needed
+
+on:
+  issues:
+    types: [labeled]
+
+jobs:
+  change-impact:
+    if: >-
+      github.event.label.name == 'design-miss' ||
+      github.event.label.name == 'requirement-change' ||
+      github.event.label.name == 'security-gap' ||
+      github.event.label.name == 'arch-fix'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: read
+
+    steps:
+      - name: Extract issue metadata
+        id: issue_meta
+        env:
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          LABEL_NAME: ${{ github.event.label.name }}
+        run: |
+          echo "issue_number=${ISSUE_NUMBER}" >> $GITHUB_OUTPUT
+          echo "issue_title=${ISSUE_TITLE}" >> $GITHUB_OUTPUT
+          echo "label=${LABEL_NAME}" >> $GITHUB_OUTPUT
+
+          # Extract ADO story ID from issue title or body: ADO-123
+          ADO_ID=$(echo "${ISSUE_TITLE} ${ISSUE_BODY}" | grep -oP 'ADO-\d+' | head -1)
+          echo "ado_id=${ADO_ID}" >> $GITHUB_OUTPUT
+
+          # Extract EPIC ID if present
+          EPIC_ID=$(echo "${ISSUE_TITLE} ${ISSUE_BODY}" | grep -oP 'EPIC-\d+' | head -1)
+          echo "epic_id=${EPIC_ID}" >> $GITHUB_OUTPUT
+
+          echo "Issue: #${ISSUE_NUMBER} | Label: ${LABEL_NAME} | ADO: ${ADO_ID} | Epic: ${EPIC_ID}"
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Run Change Impact Agent
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: ${{ steps.issue_meta.outputs.issue_number }}
+          LABEL: ${{ steps.issue_meta.outputs.label }}
+          ADO_ID: ${{ steps.issue_meta.outputs.ado_id }}
+        run: |
+          echo "🔍 Running @change-impact-agent for Issue #${ISSUE_NUMBER} (${LABEL})"
+
+          # Invoke Copilot agent with issue context
+          gh copilot workspace \
+            --issue $ISSUE_NUMBER \
+            --repo ${{ github.repository }} \
+            --instructions "$(cat .github/copilot/agents/change-impact-agent.md)" \
+            --prompt "@change-impact-agent --issue ${ISSUE_NUMBER}"
+
+      - name: Comment on issue with results
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: ${{ steps.issue_meta.outputs.issue_number }}
+          ADO_ID: ${{ steps.issue_meta.outputs.ado_id }}
+          LABEL: ${{ steps.issue_meta.outputs.label }}
+        run: |
+          # Check if a delta plan was created
+          DELTA_FILE=""
+          if [ -n "$ADO_ID" ]; then
+            DELTA_FILE=$(ls taskPlan/${ADO_ID}-change-delta.md 2>/dev/null || ls docs/epic-plans/*-change-delta.md 2>/dev/null | head -1)
+          fi
+
+          if [ -n "$DELTA_FILE" ]; then
+            gh issue comment $ISSUE_NUMBER --body "🤖 **Change Impact Agent complete.**
+
+          **Label:** \`${LABEL}\`
+          **ADO Story:** ${ADO_ID:-N/A}
+          **Delta Plan:** \`${DELTA_FILE}\`
+
+          The delta plan has been committed to the repository.
+          Review it and follow the downstream agent instructions inside.
+
+          Next steps:
+          1. Review the delta plan
+          2. Re-run \`@task-planner\` for affected stories
+          3. If BREAKING — coordinate with downstream service owners"
+          else
+            gh issue comment $ISSUE_NUMBER --body "🤖 **Change Impact Agent ran.**
+
+          **Label:** \`${LABEL}\`
+          **ADO Story:** ${ADO_ID:-N/A}
+
+          Check the agent output above for classification and impact analysis.
+          If a delta plan was generated, it will appear in \`taskPlan/\` or \`docs/epic-plans/\`."
+          fi
+
+      - name: Commit delta plan artifacts
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Stage any new or modified delta plans and changelog updates
+          git add -A taskPlan/*-change-delta.md 2>/dev/null || true
+          git add -A docs/epic-plans/*-change-delta.md 2>/dev/null || true
+          git add -A docs/project-changelog.md 2>/dev/null || true
+          git add -A docs/solution-design/*.md 2>/dev/null || true
+
+          if git diff --cached --quiet; then
+            echo "No delta plan artifacts to commit"
+          else
+            git commit -m "docs(change-impact): delta plan for Issue #${{ steps.issue_meta.outputs.issue_number }}
+
+          Agent: @change-impact-agent
+          Label: ${{ steps.issue_meta.outputs.label }}
+          ADO: ${{ steps.issue_meta.outputs.ado_id }}"
+            git push
+            echo "✅ Delta plan artifacts committed"
+          fi
+
+      - name: Send Teams notification for BREAKING changes
+        if: always()
+        env:
+          ISSUE_NUMBER: ${{ steps.issue_meta.outputs.issue_number }}
+          LABEL: ${{ steps.issue_meta.outputs.label }}
+          ADO_ID: ${{ steps.issue_meta.outputs.ado_id }}
+        run: |
+          if [ -f ".github/hooks/notify-teams.js" ]; then
+            node .github/hooks/notify-teams.js agent-complete \
+              agent=@change-impact-agent \
+              story=${ADO_ID:-Issue-${ISSUE_NUMBER}} \
+              status=success \
+              summary="Change impact analysis for ${LABEL} on Issue #${ISSUE_NUMBER}"
+          fi
