@@ -61,10 +61,7 @@ For each child Task found, extract:
 If child Tasks are found → **use them as the primary technical specification** for this task plan.
 They represent the detailed `@story-refiner` analysis and override any assumptions you would otherwise make.
 
-If NO child Tasks are found → proceed using the story's own description and ACs, and note:
-```
-⚠️ No [TECH] Tasks found on ADO-{id}. Consider running @story-refiner first for detailed technical decomposition.
-```
+If NO child Tasks are found → proceed using the story's own description and ACs directly.
 
 If any fields are empty or unclear, note them in the plan under **"Gaps / Clarifications Needed"** — do not guess.
 
