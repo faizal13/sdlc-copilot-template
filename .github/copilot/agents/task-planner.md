@@ -44,6 +44,28 @@ Read ADO story `{ADO_STORY_ID}` via MCP and extract:
 - [ ] Priority
 - [ ] Linked stories or dependencies
 
+**Then read child Tasks of this story (MANDATORY):**
+
+The story likely has `[TECH]` Task work items created by `@story-refiner` as children in ADO.
+These Tasks contain the technical decomposition and must NOT be ignored.
+
+```
+Read child work items of {ADO_STORY_ID} via MCP (work item type = Task)
+For each child Task found, extract:
+  - Task ID (TASK-{id})
+  - Title
+  - Description → "What Needs to Be Built", "Data Model Changes", "API Changes", "Dependencies", "Out of Scope"
+  - Acceptance Criteria
+```
+
+If child Tasks are found → **use them as the primary technical specification** for this task plan.
+They represent the detailed `@story-refiner` analysis and override any assumptions you would otherwise make.
+
+If NO child Tasks are found → proceed using the story's own description and ACs, and note:
+```
+⚠️ No [TECH] Tasks found on ADO-{id}. Consider running @story-refiner first for detailed technical decomposition.
+```
+
 If any fields are empty or unclear, note them in the plan under **"Gaps / Clarifications Needed"** — do not guess.
 
 **Incomplete story gating:** If the story has NO acceptance criteria — **STOP immediately.**
@@ -106,6 +128,7 @@ If found:
 2. **Load contract handoffs:** If this story consumes a contract from a previous phase, read the contract definition and include it in the task plan
 3. **Note parallel stories:** If other stories are in the same phase, note them — the dev agent should not modify files those stories are also changing
 4. **Service confirmation:** Verify the service mapping from the execution plan matches your analysis
+5. **Read linked Task IDs from the execution plan:** The Story-to-Service Mapping and Phase tables list `TASK-{id}` values per story. If this story has Task IDs listed and you have NOT already read them in Step 1 (e.g. you were invoked with a plain description rather than an ADO Story ID), read each Task from ADO via MCP now and incorporate their technical detail.
 
 If NO execution plan exists:
 - WARN: "No execution plan found for this epic. Run @story-refiner first for dependency-aware planning."
