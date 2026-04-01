@@ -22,7 +22,24 @@ contexts/                                    → Domain terminology, business ru
 docs/solution-design/                        → Architecture decisions, personas, integration contracts, state machines
 copilot-instructions.md                      → Java coding standards (DO NOT duplicate — follow it as-is)
 .github/instructions/*.instructions.md       → All instruction files (coding, security, testing, middleware)
+.copilot/instincts/*.json                    → ALL instincts — apply every applicable one
+.github/skills/                              → ALL promoted skills
 ```
+
+### Instinct Loading — Progressive Disclosure
+
+Instead of loading ALL instinct files, use the index-first approach:
+
+1. **Read `.copilot/instincts/INDEX.json`** — lightweight summary of all instincts
+2. **Filter by relevance**: select only instincts whose `category` matches the issue's domain:
+   - If the issue involves external systems → load `integration` category
+   - If the issue involves state machine → load `domain` category
+   - If the issue involves new tests → load `testing` category
+   - Always load `coding` and `security` categories (they apply universally)
+3. **Load only the selected instinct files** by their `filename` from the index
+4. Skip any instinct marked `"promoted": true` — its pattern is already in `.github/skills/`
+
+This saves context budget as the instinct library grows. If INDEX.json doesn't exist yet, fall back to reading all `.copilot/instincts/*.json` files.
 
 **API Spec (contract — load after Phase 0, before Phase 2):**
 ```

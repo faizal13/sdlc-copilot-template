@@ -39,7 +39,27 @@ Explicitly targets PR number 123.
 
 ---
 
-## Step 0 — Identify PR and Repository
+## Step 0 — Load Instincts
+
+Before addressing any comments, load applicable instincts so your fixes follow established patterns:
+
+1. **Read `.copilot/instincts/INDEX.json`** — lightweight summary of all learned patterns
+2. **Filter by relevance**: select instincts whose `category` matches the domain of the PR:
+   - Always load `coding` and `security` categories (they apply universally)
+   - If the PR touches integration code → load `integration` category
+   - If the PR touches domain logic → load `domain` category
+   - If the PR touches tests → load `testing` category
+3. **Load only the selected instinct files** by their `filename` from the index
+4. Skip any instinct marked `"promoted": true` — its pattern is already in `.github/skills/`
+
+If INDEX.json doesn't exist yet, fall back to reading all `.copilot/instincts/*.json` files.
+If no instincts exist yet, proceed without them.
+
+**Why this matters:** When fixing code based on review comments, you must apply the same patterns the team has standardized. Ignoring instincts leads to inconsistent fixes that trigger more review comments.
+
+---
+
+## Step 0.5 — Identify PR and Repository
 
 1. Determine the current branch: `git branch --show-current`
 2. Determine the GitHub remote: `git remote get-url origin` → extract `{owner}` and `{repo}`

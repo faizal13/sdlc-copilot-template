@@ -41,7 +41,24 @@ Read these files:
 ```
 evals/scoring-rubric.md              ← Scoring dimensions and criteria
 evals/golden-references/{agent}-eval.md  ← Golden input/output pairs for the target agent
+.copilot/instincts/INDEX.json        ← team instincts (for instinct compliance scoring)
 ```
+
+### Instinct Loading for Evaluation
+
+Load applicable instincts to check if agent outputs respect established patterns:
+
+1. **Read `.copilot/instincts/INDEX.json`** — lightweight summary of all learned patterns
+2. **Load all instincts** whose `category` is relevant to the agent being evaluated:
+   - Evaluating `@task-planner` → load `coding`, `domain`, `integration` categories
+   - Evaluating `@local-rakbank-dev-agent` → load ALL categories
+   - Evaluating `@local-reviewer` → load `coding`, `security`, `testing` categories
+   - Evaluating `@story-analyzer` → load `domain` category
+3. Skip any instinct marked `"promoted": true` — its pattern is already in `.github/skills/`
+
+If INDEX.json doesn't exist yet, skip instinct scoring.
+
+**Scoring impact:** If instincts exist but the agent output ignores or contradicts them, deduct from **Standards Compliance**. Note the specific instinct violated in the scorecard.
 
 Understand the 4 scoring dimensions:
 1. **Completeness** (0.0–1.0): All required sections present?

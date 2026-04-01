@@ -46,7 +46,25 @@ Read in order:
 8.  taskPlan/*.md                                    ← find the task plan for this work
 9.  docs/api-specs/{service-name}.yaml               ← API contract (load if exists; derive service name from task plan)
 10. docs/api-specs/common/schemas/errors.yaml        ← expected error shape (RFC 9457)
+11. .copilot/instincts/INDEX.json                    ← instinct index (then load relevant instinct files)
 ```
+
+### Instinct Loading for Review Enforcement
+
+Load applicable instincts so you can **enforce** them during review:
+
+1. **Read `.copilot/instincts/INDEX.json`** — lightweight summary of all learned patterns
+2. **Filter by relevance**: select instincts whose `category` matches the task plan's domain:
+   - Always load `coding` and `security` categories (they apply universally)
+   - If the task involves external systems → load `integration` category
+   - If the task involves state machine → load `domain` category
+   - If the task involves new tests → load `testing` category
+3. **Load only the selected instinct files** by their `filename` from the index
+4. Skip any instinct marked `"promoted": true` — its pattern is already in `.github/skills/`
+
+If INDEX.json doesn't exist yet, fall back to reading all `.copilot/instincts/*.json` files.
+
+**Enforcement rule:** For each loaded instinct, check if the generated code follows the instinct's pattern. If it violates an instinct, flag it as 🟡 WARNING with the specific instinct reference.
 
 > **API spec note:** If `docs/api-specs/{service-name}.yaml` is found, Step 2 includes an "API Contract Compliance" check.
 
@@ -131,6 +149,7 @@ For each changed file, check every item below. Mark ✅ (pass), ❌ (fail), or �
 | **Records for DTOs** | If plain classes are used for DTOs, Records are cleaner |
 | **Stream API** | Loops that could be cleaner with streams |
 | **Coverage gaps** | Edge cases or boundary conditions not covered by tests |
+| **Instinct violations** | Code violates a pattern from `.copilot/instincts/` — flag with instinct filename |
 | **Instinct opportunities** | A repeated pattern that could be captured as a new instinct |
 
 ---

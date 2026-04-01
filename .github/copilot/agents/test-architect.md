@@ -65,7 +65,21 @@ contexts/                                         ← read ALL domain context fi
 ```
 docs/test-cases/EPIC-{id}/                        ← previous test cases (for delta/update runs)
 docs/project-changelog.md                         ← understand project evolution and requirement drift
+.copilot/instincts/INDEX.json                     ← team instincts (load testing-relevant ones)
 ```
+
+### Instinct Loading for Test Design
+
+Load applicable instincts so your test cases cover patterns the team has standardized:
+
+1. **Read `.copilot/instincts/INDEX.json`** — lightweight summary of all learned patterns
+2. **Filter by relevance**: always load `testing` category; also load `domain`, `security`, and `integration` categories if the epic covers those areas
+3. **Load only the selected instinct files** by their `filename` from the index
+4. Skip any instinct marked `"promoted": true` — its pattern is already in `.github/skills/`
+
+If INDEX.json doesn't exist yet, fall back to reading all `.copilot/instincts/*.json` files.
+
+**Why this matters:** Instincts capture patterns like "all external calls must use @CircuitBreaker with fallback" — your test cases should include scenarios that validate these patterns are correctly implemented (e.g., "verify circuit breaker trips after 3 consecutive failures").
 
 **From ADO — via MCP:**
 - Read each BA Story referenced in the execution plan

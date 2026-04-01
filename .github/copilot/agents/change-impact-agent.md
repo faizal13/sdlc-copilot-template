@@ -100,6 +100,21 @@ Read these files to understand current state:
 - `docs/reviews/*-review.md` — any review reports for affected branches
 - `docs/project-changelog.md` — requirement drift history
 
+### Load Instincts for Impact Assessment
+
+Read `.copilot/instincts/INDEX.json` to understand the team's established patterns:
+1. **Filter by relevance**: select instincts whose `category` matches the change domain
+   - If change affects external integrations → load `integration` category
+   - If change affects domain logic → load `domain` category
+   - If change affects API contracts → load `api` category
+   - Always load `coding` and `security` categories
+2. **Load only the selected instinct files** by their `filename` from the index
+3. Skip any instinct marked `"promoted": true` — already in `.github/skills/`
+
+If INDEX.json doesn't exist yet, fall back to reading all `.copilot/instincts/*.json` files.
+
+**Why this matters for change impact:** A requirement change may invalidate an existing instinct pattern (e.g., a BREAKING change to API contract conventions). The delta plan must flag if any instinct becomes stale or contradicted by the change, so `@local-instinct-learner` can update or retire it.
+
 If none found, state:
 ```
 ℹ️ No prior artifacts found — this is a net-new change. Delta plan will be created as a net-new plan.
@@ -177,6 +192,11 @@ Based on classification and scope:
 ## What Does NOT Need to Change
 (Explicitly list what was reviewed and confirmed safe — reduces rework anxiety)
 - {file/component} — {why it's unaffected}
+
+## Instinct Impact
+(List any instincts from `.copilot/instincts/` that are affected by this change)
+- {instinct-filename.json} — {STILL VALID | NEEDS UPDATE | RETIRED} — {reason}
+(or "No instincts affected by this change.")
 
 ## Downstream Agent Instructions
 - [ ] Re-run `@task-planner` for story ADO-{id} with this delta as input

@@ -55,7 +55,21 @@ docs/solution-design/                            ← read ALL files in this dire
 ```
 contexts/                                        ← read ALL domain context files
 docs/api-specs/common/                           ← shared schemas from previous runs
+.copilot/instincts/INDEX.json                    ← team instincts (load API-relevant ones)
 ```
+
+### Instinct Loading for API Design
+
+Load applicable instincts so your API specs follow patterns the team has standardized:
+
+1. **Read `.copilot/instincts/INDEX.json`** — lightweight summary of all learned patterns
+2. **Filter by relevance**: load `api`, `integration`, and `security` categories
+3. **Load only the selected instinct files** by their `filename` from the index
+4. Skip any instinct marked `"promoted": true` — its pattern is already in `.github/skills/`
+
+If INDEX.json doesn't exist yet, fall back to reading all `.copilot/instincts/*.json` files.
+
+**Why this matters:** Instincts may define API conventions like "all list endpoints must use cursor-based pagination" or "all error responses must include a correlation ID". Your specs must follow these established patterns.
 
 **From codebase — scan for existing patterns:**
 - Existing OpenAPI/Swagger config classes
