@@ -119,7 +119,7 @@ The installer will prompt you:
 ```
 
 **Which mode to choose:**
-- **Local** — You write code in VS Code with Copilot agents. All 16 agents work locally. Start here.
+- **Local** — You write code in VS Code with Copilot agents. All 18 agents work locally. Start here.
 - **Hybrid** — Same as local + GitHub Actions pipeline for automated coding/review/ADO-sync. Add this later when ready.
 
 **Which target to choose:**
@@ -128,7 +128,7 @@ The installer will prompt you:
 
 What gets installed for **Local + Single folder**:
 ```
-.github/agents/              ← 15 agents as *.agent.md
+.github/agents/              ← 18 agents as *.agent.md
 .github/instructions/        ← 8 auto-instructions + examples
 .github/skills/              ← 4 skills
 .github/hooks/               ← session-logger.json + Node.js scripts + git post-commit
@@ -254,15 +254,16 @@ Ensure these VS Code settings are active (auto-set by installer if `.vscode/sett
 
 ### Step 5 — Verify agents are available
 
-Open Copilot Chat → type `@` → you should see all 16 agents in the dropdown:
+Open Copilot Chat → type `@` → you should see all 18 agents in the dropdown:
 
 ```
 @address-comments
 @api-architect
+@change-impact-agent
 @context-architect
 @eval-runner
+@git-publisher
 @instinct-extractor
-@test-architect
 @local-instinct-learner
 @local-rakbank-dev-agent
 @local-reviewer
@@ -273,6 +274,7 @@ Open Copilot Chat → type `@` → you should see all 16 agents in the dropdown:
 @task-planner
 @tech-debt-planner
 @telemetry-collector
+@test-architect
 ```
 
 If agents don't appear: make sure files are in `.github/agents/*.agent.md` (not `.github/copilot/agents/`).
@@ -455,10 +457,11 @@ To update a specific agent: delete the file from `.github/agents/` and re-run.
 
 ```
 .github/
-├── agents/                    ← 17 agents as *.agent.md (VS Code reads here)
+├── agents/                    ← 18 agents as *.agent.md (VS Code reads here)
 │   ├── story-refiner.agent.md
 │   ├── api-architect.agent.md
 │   ├── test-architect.agent.md         ← QA test case generator
+│   ├── change-impact-agent.agent.md    ← mid-sprint requirement drift analysis
 │   ├── sprint-orchestrator.agent.md
 │   ├── task-planner.agent.md
 │   ├── local-rakbank-dev-agent.agent.md

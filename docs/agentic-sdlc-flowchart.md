@@ -629,10 +629,11 @@ Three guards prevent any infinite loop:
 
 ```
 .github/
-├── agents/                              ← 17 agents as *.agent.md (correct VS Code path)
+├── agents/                              ← 18 agents as *.agent.md (correct VS Code path)
 │   ├── story-refiner.agent.md           Epic → execution plan + technical tasks
 │   ├── api-architect.agent.md           Execution plan → OpenAPI 3.1 specs
 │   ├── test-architect.agent.md          ACs + API specs → QA test cases
+│   ├── change-impact-agent.agent.md     Mid-sprint requirement drift → delta plan
 │   ├── sprint-orchestrator.agent.md     Orchestrates sprint + delegates to sub-agents
 │   ├── story-analyzer.agent.md          ADO story + API spec → GitHub Issue (remote)
 │   ├── task-planner.agent.md            ADO/task + API spec → local task plan

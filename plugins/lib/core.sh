@@ -5,7 +5,7 @@
 #  Sourced by install.sh. Never run directly.
 #
 #  Installs:
-#    - All 17 agents                → .github/agents/*.agent.md
+#    - All 18 agents                → .github/agents/*.agent.md
 #    - Auto-instructions (8)        → .github/instructions/*.instructions.md
 #    - Instruction examples (4)     → .github/instructions/examples/
 #    - VS Code skills (4)           → .github/skills/{name}/SKILL.md
@@ -29,7 +29,7 @@ install_core() {
   print_section "Agents  →  .github/agents/*.agent.md"
   mkdir -p "$TARGET_DIR/.github/agents"
 
-  # Copy all 17 agents from template .github/copilot/agents/*.md
+  # Copy all 18 agents from template .github/copilot/agents/*.md
   # to target .github/agents/*.agent.md (correct VS Code path)
   for agent_file in "$TEMPLATE_ROOT/.github/copilot/agents/"*.md; do
     if [ -f "$agent_file" ]; then

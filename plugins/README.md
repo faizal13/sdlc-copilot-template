@@ -29,7 +29,7 @@ plugins/
 
 | Mode | What it installs |
 |------|-----------------|
-| **Local** | All 14 agents, skills, hooks, instructions, runtime dirs, taskPlan/, sprintPlan/ |
+| **Local** | All 18 agents, skills, hooks, instructions, runtime dirs, taskPlan/, sprintPlan/ |
 | **Hybrid** | Everything in Local + GitHub Actions workflows + MCP configurations |
 
 ## Two Targets
@@ -92,8 +92,8 @@ bash /path/to/sdlc-copilot-template/plugins/workspace-init.sh
 
 | Component | Path | Count |
 |-----------|------|-------|
-| Agents | `.github/agents/*.agent.md` | 14 |
-| Instructions | `.github/instructions/*.instructions.md` | 6 + examples |
+| Agents | `.github/agents/*.agent.md` | 18 |
+| Instructions | `.github/instructions/*.instructions.md` | 8 + examples |
 | Skills | `.github/skills/{name}/SKILL.md` | 4 |
 | Session logger | `.github/hooks/session-logger/` | hooks.json + 3 scripts |
 | Git post-commit | `.github/hooks/git/post-commit` | 1 |

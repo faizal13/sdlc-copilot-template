@@ -9,7 +9,7 @@
 #    - taskPlan/    directory + README  (where @task-planner writes spec files)
 #    - sprintPlan/  directory + README  (where @sprint-orchestrator writes status)
 #
-#  core.sh already installs all 14 agents, skills, hooks, instructions,
+#  core.sh already installs all 18 agents, skills, hooks, instructions,
 #  and all other runtime directories. This file only adds the local-workflow
 #  specific planning directories.
 #
